@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Django 网站{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <h1>我的 Django 网站</h1>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>版权所有 © 2025</p>
+    </footer>
+</body>
+</html>
