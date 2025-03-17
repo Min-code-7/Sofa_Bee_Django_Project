@@ -1,0 +1,81 @@
+<!-- checkout.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Checkout</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Product</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col" class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail me-3" style="max-width: 60px;">
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product.name }}</h6>
+                                                <small class="text-muted">describe(size,color)</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ item.product.price }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td class="text-end">${{ item.get_price }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td class="text-end">${{ total_price }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
+                                    <td class="text-end">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td class="text-end"><strong>${{ total_price }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Proceed to Payment</h5>
+                </div>
+                <div class="card-body">
+                    <p>Please enter your shipping information to continue with the order.</p>
+                    <a href="{% url 'cart:shipping' %}" class="btn btn-primary d-block">Continue to Shipping</a>
+                    <hr>
+                    <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary d-block">Back to Cart</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -88,6 +88,29 @@
             }
         });
     }
+	
+	function addToCart(productId) {
+		fetch(`/cart/add/${productId}/`, {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'X-CSRFToken': '{{ csrf_token }}'
+			}
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.status === 'success') {
+				alert(data.message);
+				// Refresh cart count in navbar if needed
+				// You could update a cart counter badge here
+				location.reload(); // Simple solution to update cart count
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred while adding to cart');
+		});
+	}
 </script>
 
 {% endblock %}
