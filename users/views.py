@@ -59,7 +59,7 @@ def register(request):
 
             # login
             login(request, user)
-            return redirect("home")
+            return redirect("products:product_list")
 
     else:
         form = UserRegisterForm(initial={'user_type': user_type})
@@ -72,11 +72,11 @@ def user_login(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('home')  # redirect to home
+            return redirect('products:product_list')  
     else:
         form = AuthenticationForm()
     return render(request, 'users/login.html', {'form': form})
 
 def user_logout(request):
     logout(request)
-    return redirect('home')
+    return redirect('products:product_list')

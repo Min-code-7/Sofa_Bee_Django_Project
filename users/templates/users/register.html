@@ -10,10 +10,10 @@
 
 <!-- Add the Merchant link below the button -->
 <p style="margin-top: 10px; text-align: center;">
-    <a href="{% url 'register' %}?user_type=merchant">Register as Merchant</a>
+    <a href="{% url 'users:register' %}?user_type=merchant">Register as Merchant</a>
 </p>
 
-<p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+<p>Already have an account? <a href="{% url 'users:login' %}">Login</a></p>
 
 <script>
 document.getElementById("send-code").addEventListener("click", function() {
@@ -23,7 +23,7 @@ document.getElementById("send-code").addEventListener("click", function() {
         return;
     }
 
-    fetch("{% url 'send_verification_code' %}", {
+    fetch("{% url 'users:send_verification_code' %}", {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
