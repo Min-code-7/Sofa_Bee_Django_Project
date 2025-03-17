@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.templatetags.static import static
 
+from reviews.forms import ReviewForm
 from .forms import ProductForm
 from .models import Product, Category
 
@@ -32,6 +33,15 @@ PRODUCTS = [
     {"id": 12, "name": "test product 12", "description": "This is the twelfth test product", "category": "Clothing", "price": 299.99,
      "image": static("products/images/pic12.png")},
 ]
+
+REVIEWS = {
+    1: [{"user": "UserA", "rating": "5", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"},
+        {"user": "UserC", "rating": "2", "comment": "Bad!", "created_at": "2025-03-06 12:05:30"}],
+    3: [{"user": "UserD", "rating": "4", "comment": "Good!", "created_at": "2025-03-06 12:05:30"},
+        {"user": "UserB", "rating": "3", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"},
+        {"user": "UserA", "rating": "3", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"}],
+    6: [{"user": "UserD", "rating": "5", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"}],
+}
 
 # Create your views here.
 '''
@@ -76,10 +86,25 @@ def product_detail(request, product_id):
     # use test data
     product = next((p for p in PRODUCTS if p["id"] == product_id), None)
 
+
     if product is None:
         return render(request, "404.html", {"message": "No Product matches the given query."}, status=404)
 
-    return render(request, "products/product_detail.html", {"product": product})
+    # get review
+    reviews = REVIEWS.get(product_id, [])
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.product = product
+            review.user = request.user
+            review.save()
+            return redirect('product_detail', product_id=product.id)
+    else:
+        form = ReviewForm()
+
+    return render(request, "products/product_detail.html", {"product": product, "reviews": reviews, "form": form})
 
 def product_search(request):
     query = request.GET.get('q', '')
