@@ -1,0 +1,49 @@
+<h2>User Register</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="button" id="send-code">Send Verification Code</button>
+    <button type="submit">Register</button>
+</form>
+
+<!-- Add the Merchant link below the button -->
+<p style="margin-top: 10px; text-align: center;">
+    <a href="{% url 'register' %}?user_type=merchant">Register as Merchant</a>
+</p>
+
+<p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+
+<script>
+document.getElementById("send-code").addEventListener("click", function() {
+    var email = document.querySelector("input[name='email']").value;
+    if (!email) {
+        alert("Please input email first！");
+        return;
+    }
+
+    fetch("{% url 'send_verification_code' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: "email=" + encodeURIComponent(email),
+    })
+    .then(response => response.json())
+    .then(data => alert(data.message))
+    .catch(error => console.error("Error:", error));
+});
+
+// When the user clicks "Register as merchant", the merchant type is automatically selected
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('user_type') === 'merchant') {
+    var userTypeField = document.querySelector("input[name='user_type']");
+    if (userTypeField) {
+        userTypeField.value = 'merchant';
+    }
+}
+</script>
+
+
