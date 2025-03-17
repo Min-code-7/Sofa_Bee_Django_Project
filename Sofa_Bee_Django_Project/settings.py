@@ -59,7 +59,7 @@ ROOT_URLCONF = 'Sofa_Bee_Django_Project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'profiles/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

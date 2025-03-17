@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增加地址</title>
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .profile-card {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .a {
+            width: 300px;
+            height: 100px;
+            text-align: center;
+            font-size: 23px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+<div style="display: flex; min-height: 100vh;">
+    <!-- 左边灰色背景 -->
+    <div style="flex: 1; background-color: #f0f0f0;">
+
+        <div class="container" style="flex: 3; background-color: white; height: 100%;padding-top: 150px">
+
+            <div style="float:left;width: 35%;margin: auto">
+                <div class="col-md-3 sidebar">
+                    <div class="list-group " style="width: 100%;padding-left: 80px">
+                        <a class="list-group-item list-group-item-action a" aria-current="true"
+                           href="{% url 'profiles' id=id %}">
+                            <h3>Profile</h3>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action a">cart</a>
+                        <a href="#" class="list-group-item list-group-item-action a">my orders</a>
+                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' id=id %}">history
+                            orders</a>
+                        <a class="list-group-item list-group-item-action a"
+                           href="{% url 'modify_profile' id=id %}">setting</a>
+
+                    </div>
+                </div>
+            </div>
+            <div style="float:left;width:700px">
+                <div class="container" style="flex: 3; background-color: white; height: 100%">
+                    <div class="card-body">
+                        <div class="profile-card">
+                            <h1 class="mb-4">Add new Address</h1>
+                            <form method="post">
+                                {% csrf_token %}
+
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">name</label>
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="name"
+                                           required>
+                                </div>
+
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Mobile Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone"
+                                           placeholder="Mobile Number"
+                                           required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="province" class="form-label">County</label>
+                                    <input type="text" class="form-control" id="province" name="province"
+                                           placeholder="County"
+                                           required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="City" name="city" placeholder="City"
+                                           required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="district" class="form-label">district</label>
+                                    <input type="text" class="form-control" id="district" name="district"
+                                           placeholder="House number, building, street.ect" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail" class="form-label">Postcode</label>
+                                    <textarea class="form-control" id="detail" name="detail" rows="3"
+                                              placeholder="Postcode"
+                                              required></textarea>
+                                </div>
+
+                                <div style="text-align: center">
+                                    <button type="submit" class="btn btn-primary">save address</button>
+                                    <a class="btn btn-primary" href="{% url 'profiles' id=id %}">profile</a>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

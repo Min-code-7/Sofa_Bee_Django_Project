@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
-    <link rel="stylesheet" href="/static/plugins/bootstrap-5.3.0/css/bootstrap.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-
-
         th, td {
             text-align: center;
             vertical-align: middle;
@@ -27,13 +25,14 @@
 </head>
 <body>
 
-<div class="container" style="padding-top: 50px">
+<div class="container" style="padding-top: 150px">
     <div class="row mb-4">
-        <div class="col-md-6">
-            <form class="form-inline" method="get" action="{% url 'history_order' id=id %}">
-                <input class="form-control mr-sm-2" type="search" name="q" placeholder="输入商品标题或订单号"
+        <div class="col-md-7" >
+            <form class="form-inline" method="get" action="{% url 'history_order' id=id %}" >
+                <input class="form-control mr-sm-2" type="search" name="q" placeholder="input order id to search"
                        aria-label="Search">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索</button>
+                <div style="padding-top:20px;"></div>
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">search</button>
             </form>
         </div>
     </div>
@@ -93,15 +92,16 @@
                             <td class="td_items">{{ detail.item_quantity }}</td>
                             <td class="td_items">{{ detail.price }}</td>
                             {% if forloop.first %}
-                                <td rowspan="{{ order_items|length }}">{{ detail.order_status }}</td>
+                                <td rowspan="{{ order_items|length }}">{{ order.order_status }}</td>
                                 <td class="td_items" rowspan="{{ order_items|length }}">
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb">
-                                        <li class="breadcrumb-item"><a href="#">评价</a></li>
-                                        <li class="breadcrumb-item"><a href="{% url 'order_detail' id=id%}">详情</a></li>
-                                    </ol>
-                                </nav>
-                            </td>
+                                    <nav aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item"><a href="#">评价</a></li>
+                                            <li class="breadcrumb-item"><a
+                                                    href="{% url 'order_detail' id=id %}">详情</a></li>
+                                        </ol>
+                                    </nav>
+                                </td>
                             {% endif %}
 
 

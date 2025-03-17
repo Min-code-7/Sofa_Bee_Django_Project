@@ -66,4 +66,3 @@ def compare_code(request):
             return JsonResponse({"code": 400, "message": "验证码错误！"})
 
 
-
