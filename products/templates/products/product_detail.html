@@ -33,13 +33,8 @@
                 </select>
 
                 <!-- keywords -->
-                <select id="filter-keyword" class="form-select">
-                    <option value="">All</option>
-                    <option value="quality">Quality</option>
-                    <option value="value">Value for money</option>
-                    <option value="softness">Softness</option>
-                    <option value="ease">Ease of use</option>
-                </select>
+                <input type="text" id="filter-keyword" placeholder="Search reviews...">
+
 
                 <!-- with images -->
                 <div class="form-check">
@@ -126,7 +121,7 @@ function filterReviews() {
         url: "{% url 'filter_reviews' product.id %}", 
         data: {
             rating: rating ? parseInt(rating, 10) : null,
-            keyword: keyword,
+            keyword: $("#filter-keyword").val(),
             images: onlyImages
         },
         

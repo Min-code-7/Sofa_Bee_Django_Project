@@ -7,33 +7,28 @@ from products.views import REVIEWS
 # Create your views here.
 
 def filter_reviews(request, product_id):
-
     rating = request.GET.get("rating")
-    keyword = request.GET.get("keyword")
+    keyword = request.GET.get("keyword", "").strip().lower()
     only_images = request.GET.get("images") == "true"
 
+    product_id = int(product_id)
 
 
-    # reviews = Review.objects.filter(product_id=int(product_id))
+
     reviews = REVIEWS.get(product_id, [])
-    print(f"All Reviews for Product {product_id}: {list(reviews)}")
 
-    print(f"Received rating: {rating} (type: {type(rating)})")
-    print(f"All Reviews for Product {product_id}: {reviews}")
+
 
     if rating:
         reviews = [r for r in reviews if r["rating"] == int(rating)]
 
-
-
     if only_images:
-        reviews = reviews.exclude(image="")
+        reviews = [r for r in reviews if "image" in r and r["image"]]
 
     if keyword:
-        reviews = reviews.filter(comment__icontains=keyword)
+        reviews = [r for r in reviews if keyword in r["comment"].lower()]
 
-    for review in reviews:
-        print(f"Review rating type: {type(review['rating'])}, value: {review['rating']}")
+    print(f"Filtered Reviews: {reviews}")
 
     review_data = [
         {
