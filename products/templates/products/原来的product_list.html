@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -6,13 +5,21 @@
 <div class="container mt-4">
     <h2 class="text-center mb-4">Products List</h2>
 
-    <!-- Search Bar -->
+    <!-- Search Bar and Category -->
     <div class="row mb-3">
-        <div class="col-md-9">
+        <div class="col-md-8">
             <input type="text" id="search-input" class="form-control" placeholder="Please input product name to search...">
         </div>
         <div class="col-md-3">
-            <button class="btn btn-primary" onclick="searchProducts()">Search</button>
+            <select id="category-select" class="form-control">
+                <option value="">All Categories</option>
+                <option value="Makeup">Makeup</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Electronics">Electronics</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-warning" onclick="searchProducts()">Search</button>
         </div>
     </div>
 
@@ -21,9 +28,8 @@
         {% for product in products %}
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm">
-                {% if product.image %}
+{#                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">#}
                 <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
-                {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text">{{ product.description|truncatewords:15 }}</p>
@@ -48,9 +54,11 @@
 <script>
     function searchProducts() {
         var query = $("#search-input").val();
+        var category = $("#category-select").val();
+
         $.ajax({
             url: "{% url 'products:product_search' %}",
-            data: { q: query },
+            data: { q: query, category: category },
             dataType: "json",
             success: function(data) {
                 $("#product-list").html("");
@@ -80,26 +88,29 @@
             }
         });
     }
-    
-    function addToCart(productId) {
-        fetch(`/cart/add/${productId}/`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                location.reload(); 
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while adding to cart');
-        });
-    }
+	
+	function addToCart(productId) {
+		fetch(`/cart/add/${productId}/`, {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'X-CSRFToken': '{{ csrf_token }}'
+			}
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.status === 'success') {
+				alert(data.message);
+				// Refresh cart count in navbar if needed
+				// You could update a cart counter badge here
+				location.reload(); // Simple solution to update cart count
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred while adding to cart');
+		});
+	}
 </script>
+
 {% endblock %}
