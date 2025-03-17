@@ -17,6 +17,8 @@ def product_list(request):
 '''
 # testing product_list function
 def product_list(request):
+
+
     # just test
     products = [
         {"id": 1, "name": "test product 1", "description": "This is the first test product", "price": 99.99, "image": static("products/images/pic1.png")},
@@ -42,7 +44,14 @@ def product_list(request):
          "image": static("products/images/pic12.png")},
     ]
 
-    return render(request, 'products/product_list.html', {"products": products})
+    # get keyword
+    query = request.GET.get('q', '').strip().lower()
+    print("keywords: ", query)
+
+    if query:
+        products = [p for p in products if query in p["name"].lower() or query in p["description"].lower()]
+
+    return render(request, "products/product_list.html", {"products": products, "query": query})
 
 
 def product_detail(request, product_id):

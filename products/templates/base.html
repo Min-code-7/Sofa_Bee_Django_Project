@@ -29,12 +29,17 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">My Online Shop</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'add_product' %}">Add Product</a></li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profile</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Log Out</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="btn btn-primary" href="{% url 'login' %}">Log In</a></li>
-                    {% endif %}
+                
+                    <!-- need to disable temporary-->
+                    {#% if user.is_authenticated %#}
+                        <!--li class="nav-item"><a class="nav-link" href="{#% url 'profile' %#}">Profile</a></li-->
+                        <!--li class="nav-item"><a class="nav-link" href="{#% url 'logout' %#}">Log Out</a></li-->
+                    <li class="nav-item"><a class="nav-link disabled">Profile</a></li>
+                    <li class="nav-item"><a class="nav-link disabled" >Log Out</a></li>
+                    {#% else %#}
+                        <!--li class="nav-item"><a class="btn btn-primary" href="{#% url 'login' %#}">Log In</a></li-->
+                    <li class="nav-item"><a class="btn btn-primary disabled">Log In</a></li>
+                    {#% endif %#}
                 </ul>
             </div>
         </div>
