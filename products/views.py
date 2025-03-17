@@ -35,13 +35,20 @@ PRODUCTS = [
 ]
 
 REVIEWS = {
-    1: [{"user": "UserA", "rating": "5", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"},
-        {"user": "UserC", "rating": "2", "comment": "Bad!", "created_at": "2025-03-06 12:05:30"}],
-    3: [{"user": "UserD", "rating": "4", "comment": "Good!", "created_at": "2025-03-06 12:05:30"},
-        {"user": "UserB", "rating": "3", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"},
-        {"user": "UserA", "rating": "3", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"}],
-    6: [{"user": "UserD", "rating": "5", "comment": "Very good!", "created_at": "2025-03-06 12:05:30"}],
+    1: [
+        {"user": "UserA", "rating": 5, "comment": "Very good!", "created_at": "2025-03-06 12:05:30"},
+        {"user": "UserC", "rating": 2, "comment": "Bad!", "created_at": "2025-03-06 12:05:30"}
+    ],
+    3: [
+        {"user": "UserD", "rating": 4, "comment": "Good!", "created_at": "2025-03-06 12:05:30"},
+        {"user": "UserB", "rating": 3, "comment": "Very good!", "created_at": "2025-03-06 12:05:30"},
+        {"user": "UserA", "rating": 3, "comment": "Very good!", "created_at": "2025-03-06 12:05:30"}
+    ],
+    6: [
+        {"user": "UserD", "rating": 5, "comment": "Very good!", "created_at": "2025-03-06 12:05:30"}
+    ]
 }
+
 
 # Create your views here.
 '''
@@ -92,6 +99,11 @@ def product_detail(request, product_id):
 
     # get review
     reviews = REVIEWS.get(product_id, [])
+
+    # handle review filter
+    for review in reviews:
+        review["rating"] = int(review["rating"])
+        review["stars"] = range(review["rating"])
 
     if request.method == 'POST':
         form = ReviewForm(request.POST)
