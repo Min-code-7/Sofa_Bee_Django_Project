@@ -30,5 +30,6 @@ urlpatterns = [
     path('profiles/add_address/<int:id>',addresses_views.add_address,name='add_address'),
     path('delete_address/<int:address_id>',addresses_views.delete_address,name='delete_address'),
     path('history_order/<int:id>',orders_views.history_order,name='history_order'),
+    path('order_detail/<int:id>',orders_views.order_detail,name='order_detail'),
 
 ]

@@ -36,8 +36,6 @@ def modify(request,id):
 
         Consumer.objects.filter(id=id).update(name=name,email=email,phone=phone)
 
-
-        # **修改完成后重定向到当前页面，保证数据刷新**
         return redirect('modify_profile', id=id)
 
     return render(request,'modify.html',{'user':user})
@@ -47,8 +45,6 @@ def send_email_captcha(request,id):
     email = request.GET.get('email')
     if not email:
         return JsonResponse({"code": 400, "message": '必须传递邮箱！'})
-    # 生成验证码（取随机的4位阿拉伯数字）
-    # ['0', '2', '9', '8']
     captcha = "".join(random.sample(string.digits, 4))
     # 存储到数据库中
     CaptchaModel.objects.update_or_create(email=email, defaults={'captcha': captcha})

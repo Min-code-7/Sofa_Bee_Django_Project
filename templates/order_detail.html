@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Detail</title>
+    <link rel="stylesheet" href="/static/plugins/bootstrap-5.3.0/css/bootstrap.css">
+    <style>
+        .box {
+
+        }
+    </style>
+</head>
+<body>
+<div class="container" style="padding-top: 250px">
+    <div class="card border-primary m-3">
+        <div class="card-header text-white">
+            <h5 class="card-title mb-0" style="color:black">订单信息</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>order inforamtion</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>order number:</strong>{{ order_info.order_id }}</li>
+                        <li><strong>order time: </strong>{{ order_info.order_time }}</li>
+                        <li><strong>pay time: </strong>{{ order_info.paid_time }}</li>
+
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>address</h6>
+                    <ul class="list-unstyled">
+                        <li>
+                            <strong>address: </strong>{{ order_info.address.detail_address }} {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                        </li>
+                        <li><strong>pay status: </strong>{{ order_info.paid_status }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card border-primary m-3">
+        <div class="card-header text-white">
+            <h5 class="card-title mb-0" style="color:black"></h5>
+        </div>
+        {% for final_result in final_results %}
+            <div style="padding-top: 30px;width: 80%;margin: auto">
+                <div class="card-header text-white">
+                    <h5 class="card-title mb-0" style="color:black">
+                        <div style="float: left;padding-right: 200px">{{ final_result.merchant.shop_name }}</div>
+                        {{ final_result.merchant.email }}
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>item</th>
+                        <th>item description</th>
+                        <th>unit price</th>
+                        <th>quantity</th>
+                        <th>total price</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item_detail in final_result.final_details %}
+                        <tr>
+                            <td>
+                                <img style="width: 80px; height: 80px;" src="{{ item_detail.picture }}">
+                                <span>{{ item_detail.item_name }}</span>
+                            </td>
+                            <td>{{ item_detail.description }}</td>
+                            <td>{{ item_detail.price }}</td>
+                            <td>{{ item_detail.quantity }}</td>
+                            <td>{{ item_detail.total_price }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% endfor %}
+    </div>
+</div>
+
+
+</body>
+</html>
