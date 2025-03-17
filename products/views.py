@@ -6,30 +6,30 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 
 from .forms import ProductForm
-from .models import Product
+from .models import Product, Category
 
 # just test
 PRODUCTS = [
-    {"id": 1, "name": "test product 1", "description": "This is the first test product", "price": 99.99, "image": static("products/images/pic1.png")},
-    {"id": 2, "name": "test product 2", "description": "This is the second test product", "price": 199.99, "image": static("products/images/pic2.png")},
-    {"id": 3, "name": "test product 3", "description": "This is the third test product", "price": 299.99, "image": static("products/images/pic3.png")},
-    {"id": 4, "name": "test product 4", "description": "This is the first test product", "price": 99.99,
+    {"id": 1, "name": "test product 1", "description": "This is the first test product", "category": "Makeup", "price": 99.99, "image": static("products/images/pic1.png")},
+    {"id": 2, "name": "test product 2", "description": "This is the second test product", "category": "Clothing", "price": 199.99, "image": static("products/images/pic2.png")},
+    {"id": 3, "name": "test product 3", "description": "This is the third test product", "category": "Electronics", "price": 299.99, "image": static("products/images/pic3.png")},
+    {"id": 4, "name": "test product 4", "description": "This is the first test product","category": "Makeup", "price": 99.99,
      "image": static("products/images/pic4.png")},
-    {"id": 5, "name": "test product 5", "description": "This is the fifth test product", "price": 199.99,
+    {"id": 5, "name": "test product 5", "description": "This is the fifth test product", "category": "Electronics", "price": 199.99,
      "image": static("products/images/pic5.png")},
-    {"id": 6, "name": "test product 6", "description": "This is the sixth test product", "price": 299.99,
+    {"id": 6, "name": "test product 6", "description": "This is the sixth test product", "category": "Clothing", "price": 299.99,
      "image": static("products/images/pic6.png")},
-    {"id": 7, "name": "test product 7", "description": "This is the seventh test product", "price": 99.99,
+    {"id": 7, "name": "test product 7", "description": "This is the seventh test product","category": "Makeup", "price": 99.99,
      "image": static("products/images/pic7.png")},
-    {"id": 8, "name": "test product 8", "description": "This is the eighth test product", "price": 199.99,
+    {"id": 8, "name": "test product 8", "description": "This is the eighth test product", "category": "Electronics", "price": 199.99,
      "image": static("products/images/pic8.png")},
-    {"id": 9, "name": "test product 9", "description": "This is the ninth test product", "price": 299.99,
+    {"id": 9, "name": "test product 9", "description": "This is the ninth test product", "category": "Electronics", "price": 299.99,
      "image": static("products/images/pic9.png")},
-    {"id": 10, "name": "test product 10", "description": "This is the tenth test product", "price": 99.99,
+    {"id": 10, "name": "test product 10", "description": "This is the tenth test product", "category": "Clothing", "price": 99.99,
      "image": static("products/images/pic10.png")},
-    {"id": 11, "name": "test product 11", "description": "This is the eleventh test product", "price": 199.99,
+    {"id": 11, "name": "test product 11", "description": "This is the eleventh test product", "category": "Makeup", "price": 199.99,
      "image": static("products/images/pic11.png")},
-    {"id": 12, "name": "test product 12", "description": "This is the twelfth test product", "price": 299.99,
+    {"id": 12, "name": "test product 12", "description": "This is the twelfth test product", "category": "Clothing", "price": 299.99,
      "image": static("products/images/pic12.png")},
 ]
 
@@ -49,12 +49,20 @@ def product_list(request):
     query = request.GET.get('q', '').strip().lower()
     # print("keywords: ", query)
 
+    # get category
+    category = request.GET.get('category', '')
+
     products = PRODUCTS
 
     if query:
         products = [p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()]
 
-    return render(request, "products/product_list.html", {"products": products, "query": query})
+    if category:
+        products = [p for p in PRODUCTS if p["category"].lower() == category.lower()]
+
+    categories = set(p["category"] for p in PRODUCTS)
+
+    return render(request, "products/product_list.html", {"products": products, "query": query, "categories": categories, "selected_category": category})
 
 
 def product_detail(request, product_id):
@@ -75,8 +83,10 @@ def product_detail(request, product_id):
 
 def product_search(request):
     query = request.GET.get('q', '')
-    products = Product.objects.filter(name__icontains=query)
+    # products = Product.objects.filter(name__icontains=query)
+    category = request.GET.get('category', '').strip().lower()
 
+    """
     data = {
         'products': [
             {
@@ -90,8 +100,19 @@ def product_search(request):
             for product in products
         ]
     }
+    """
+    if not category:
+        filtered_products = [
+            p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()
+        ]
+    else:
+        filtered_products = [
+            p for p in PRODUCTS
+            if (query in p["name"].lower() or query in p["description"].lower()) and (not category or p["category"].lower() == category)
+        ]
 
-    return JsonResponse(data)
+    # return JsonResponse(data)
+    return JsonResponse({"products": filtered_products})
 
 # @login_required
 def add_product(request):
