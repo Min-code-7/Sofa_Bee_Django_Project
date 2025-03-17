@@ -1,0 +1,117 @@
+body{
+      margin:0;
+    }
+    .head{
+      background-color: black;
+    }
+    .content{
+      width:800px;
+      margin:0 auto;
+    }
+    .head .menu{
+      float:left;
+      color:white;
+    }
+    .head .account{
+      float:right;
+      color:white;
+    }
+    .head a{
+        color:#b0b0b0;
+        line-height:40px;
+        display:inline-block;
+        margin-right:5px;
+        font-size:10px;
+        height: 38px;
+    }
+
+    .head_1{
+        background:white;
+        height: 70px;
+    }
+    .content_1{
+        width:1226px;
+        margin: 0 auto;
+
+    }
+    .head_1 .logo{
+        width:200px;
+        float:left;
+
+    }
+    .head_1 .high{
+        height:60px;
+    }
+    .head_1 .menu_list{
+        float:left;
+        line-height: 60px;
+
+    }
+    .head_1 .menu_list a{
+        padding-right: 30px;
+        text-decoration:none;
+        color:#333;
+
+    }
+    .head_1 .menu_list a:hover{
+        color:red;
+    }
+    .head_1 .search{
+        float:right;
+        width:200px;
+    }
+
+    .slider{
+        height:460px;
+        background:white;
+    }
+    .slider .content_2{
+        width:1226px;
+        margin:0 auto;
+        background:gray;
+        height:460px;
+    }
+    .slider .sd-img{
+        width:1226px;
+        height:460px;
+    }
+    .slider .sd-img img{
+        width:100%;
+        height:100%;
+    }
+    .news{
+        height:300px;
+    }
+    .news .content-3{
+        width: 1226px;
+        margin: 0 auto;
+        height:200px;
+        background:white;
+    }
+    .news .chanel{
+        margin:20px auto;
+        float:left;
+        width:228px;
+        height:164px;
+        background:grey;
+        margin-right: 30px;
+        padding: 3px;
+    }
+    .news .list-item{
+        margin:20px auto;
+        float:right;
+        width:300px;
+        height:170px;
+        background:grey;
+        margin-left: 20px;
+    }
+    .news .list-item img {
+        width: 100%;
+        height: 100%;
+    }
+    .news .chanel .item{
+        float:left;
+        width:76px;
+        height: 82px;
+        background:red;
+    }
