@@ -8,6 +8,30 @@ from django.templatetags.static import static
 from .forms import ProductForm
 from .models import Product
 
+# just test
+PRODUCTS = [
+    {"id": 1, "name": "test product 1", "description": "This is the first test product", "price": 99.99, "image": static("products/images/pic1.png")},
+    {"id": 2, "name": "test product 2", "description": "This is the second test product", "price": 199.99, "image": static("products/images/pic2.png")},
+    {"id": 3, "name": "test product 3", "description": "This is the third test product", "price": 299.99, "image": static("products/images/pic3.png")},
+    {"id": 4, "name": "test product 4", "description": "This is the first test product", "price": 99.99,
+     "image": static("products/images/pic4.png")},
+    {"id": 5, "name": "test product 5", "description": "This is the fifth test product", "price": 199.99,
+     "image": static("products/images/pic5.png")},
+    {"id": 6, "name": "test product 6", "description": "This is the sixth test product", "price": 299.99,
+     "image": static("products/images/pic6.png")},
+    {"id": 7, "name": "test product 7", "description": "This is the seventh test product", "price": 99.99,
+     "image": static("products/images/pic7.png")},
+    {"id": 8, "name": "test product 8", "description": "This is the eighth test product", "price": 199.99,
+     "image": static("products/images/pic8.png")},
+    {"id": 9, "name": "test product 9", "description": "This is the ninth test product", "price": 299.99,
+     "image": static("products/images/pic9.png")},
+    {"id": 10, "name": "test product 10", "description": "This is the tenth test product", "price": 99.99,
+     "image": static("products/images/pic10.png")},
+    {"id": 11, "name": "test product 11", "description": "This is the eleventh test product", "price": 199.99,
+     "image": static("products/images/pic11.png")},
+    {"id": 12, "name": "test product 12", "description": "This is the twelfth test product", "price": 299.99,
+     "image": static("products/images/pic12.png")},
+]
 
 # Create your views here.
 '''
@@ -19,44 +43,35 @@ def product_list(request):
 def product_list(request):
 
 
-    # just test
-    products = [
-        {"id": 1, "name": "test product 1", "description": "This is the first test product", "price": 99.99, "image": static("products/images/pic1.png")},
-        {"id": 2, "name": "test product 2", "description": "This is the second test product", "price": 199.99, "image": static("products/images/pic2.png")},
-        {"id": 3, "name": "test product 3", "description": "This is the third test product", "price": 299.99, "image": static("products/images/pic3.png")},
-        {"id": 4, "name": "test product 4", "description": "This is the first test product", "price": 99.99,
-         "image": static("products/images/pic4.png")},
-        {"id": 5, "name": "test product 5", "description": "This is the fifth test product", "price": 199.99,
-         "image": static("products/images/pic5.png")},
-        {"id": 6, "name": "test product 6", "description": "This is the sixth test product", "price": 299.99,
-         "image": static("products/images/pic6.png")},
-        {"id": 7, "name": "test product 7", "description": "This is the seventh test product", "price": 99.99,
-         "image": static("products/images/pic7.png")},
-        {"id": 8, "name": "test product 8", "description": "This is the eighth test product", "price": 199.99,
-         "image": static("products/images/pic8.png")},
-        {"id": 9, "name": "test product 9", "description": "This is the ninth test product", "price": 299.99,
-         "image": static("products/images/pic9.png")},
-        {"id": 10, "name": "test product 10", "description": "This is the tenth test product", "price": 99.99,
-         "image": static("products/images/pic10.png")},
-        {"id": 11, "name": "test product 11", "description": "This is the eleventh test product", "price": 199.99,
-         "image": static("products/images/pic11.png")},
-        {"id": 12, "name": "test product 12", "description": "This is the twelfth test product", "price": 299.99,
-         "image": static("products/images/pic12.png")},
-    ]
+
 
     # get keyword
     query = request.GET.get('q', '').strip().lower()
-    print("keywords: ", query)
+    # print("keywords: ", query)
+
+    products = PRODUCTS
 
     if query:
-        products = [p for p in products if query in p["name"].lower() or query in p["description"].lower()]
+        products = [p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()]
 
     return render(request, "products/product_list.html", {"products": products, "query": query})
 
 
 def product_detail(request, product_id):
+
+    """
+
+    # use sqlite
     product = get_object_or_404(Product, id=product_id)
     return render(request, 'products/product_detail.html', {'product': product})
+    """
+    # use test data
+    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+
+    if product is None:
+        return render(request, "404.html", {"message": "No Product matches the given query."}, status=404)
+
+    return render(request, "products/product_detail.html", {"product": product})
 
 def product_search(request):
     query = request.GET.get('q', '')

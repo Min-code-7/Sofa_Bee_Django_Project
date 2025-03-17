@@ -1,22 +1,30 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" class="img-fluid rounded">
-                {% else %}
-                    <img src="https://via.placeholder.com/500" class="img-fluid rounded">
-                {% endif %}
-            </div>
-            <div class = "col-md-6">
-                <h2>{{ product.name }}</h2>
-                <img src="{{ product.image.url }}" width="300" alt="{{ product.name }}">
-                <p>{{ product.description }}</p>
-                <p><strong>price:</strong> ${{ product.price }}</p>
-                <a href="{% url 'product_list' %}" class="btn btn-secondary">return to the products list</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm p-4">
+                <div class="row">
+
+                    <div class="col-md-5 text-center">
+                        <img src="{{ product.image }}" alt="{{ product.name }}" class="img-fluid rounded shadow-sm">
+                    </div>
+
+
+                    <div class="col-md-7">
+                        <h2 class="mb-3"><strong>{{ product.name }}</strong></h2>
+                        <p class="text-muted">{{ product.description }}</p>
+                        <h4 class="text-primary"><strong>Price: ${{ product.price }}</strong></h4>
+
+
+                        <a href="{% url 'product_list' %}" class="btn btn-secondary mt-3">Return to the products list</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
+
