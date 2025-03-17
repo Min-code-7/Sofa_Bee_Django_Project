@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.contrib import messages
 from .forms import UserRegisterForm
+from .models import UserProfile
 
 def send_verification_code(request):
     if request.method == "POST":
@@ -33,6 +34,7 @@ def send_verification_code(request):
         return JsonResponse({"message": "The verification code has been sent, please check your email!"})
 
 def register(request):
+    user_type = request.GET.get("user_type", "regular")
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
         if form.is_valid():
@@ -48,13 +50,19 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
+            
+            # create UserProfile to connect to User
+            user_profile = UserProfile.objects.create(
+                user=user,
+                user_type=form.cleaned_data["user_type"]
+            )
 
             # login
             login(request, user)
             return redirect("home")
 
     else:
-        form = UserRegisterForm()
+        form = UserRegisterForm(initial={'user_type': user_type})
 
     return render(request, "users/register.html", {"form": form})
 

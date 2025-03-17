@@ -7,10 +7,15 @@ class UserRegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput, label="confirm password")
     verification_code = forms.CharField(label="verification code", required=True)
+    user_type = forms.ChoiceField(
+        choices=[('regular', 'normal user'), ('merchant', 'merchant user')],
+        initial='regular',
+        widget=forms.HiddenInput()
+    )
    
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'confirm_password', 'verification_code']
+        fields = ['username', 'email', 'password', 'confirm_password', 'verification_code', 'user_type']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -21,3 +26,4 @@ class UserRegisterForm(forms.ModelForm):
             raise ValidationError("The passwords entered twice are inconsistent!")
 
         return cleaned_data
+    

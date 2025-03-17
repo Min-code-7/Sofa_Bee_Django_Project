@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
         ('regular', 'normal user'),
-        ('merchant', 'regular user'),
+        ('merchant', 'merchant user'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
