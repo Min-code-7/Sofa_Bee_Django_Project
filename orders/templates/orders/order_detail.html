@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Order Details</h2>
+    <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+    <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+    <p><strong>Total Price:</strong> ${{ order.total_price }}</p>
+    <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
+    <h3>Items:</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>${{ item.price }}</td>
+                <td>{{ item.quantity }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if order.status == 'shipped' %}
+    <form method="post" action="{% url 'orders:confirm_receipt' order.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Confirm Receipt</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

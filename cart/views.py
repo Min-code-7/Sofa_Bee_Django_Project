@@ -252,7 +252,11 @@ def checkout(request):
     cart = get_cart(request)
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
-    
+
+    cart_items = cart.items.all()  # 获取所有购物车商品
+    for item in cart_items:
+        print(f"DEBUG: Product Name = {item.product_name}, Price = {item.product_price}, Quantity = {item.quantity}")
+
     context = {
         'cart': cart,
         'cart_items': cart.items.all(),  # 删除select_related('product')
