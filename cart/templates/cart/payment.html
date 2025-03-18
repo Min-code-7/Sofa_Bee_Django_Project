@@ -1,0 +1,65 @@
+<!-- payment.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Payment</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Payment Method</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center my-4">
+                        <h4>Scan the QR Code to complete payment</h4>
+                        <p class="text-muted">Order Number: {{ order_number }}</p>
+                        <p class="text-muted">Amount: ${{ total_price }}</p>
+                        
+                        <!-- QR Code -->
+                        <div class="mx-auto my-3" style="width: 200px; height: 200px; background-color: #f8f9fa; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=order:{{ order_number }}" alt="Payment QR Code">
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <p>For demonstration purposes: Scan the QR code with any device and click the "Simulate Payment Success" button below.</p>
+                        </div>
+                        
+                        <button id="simulate-payment" class="btn btn-success btn-lg mt-3">Simulate Payment Success</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Items:</strong> {{ cart.get_total_items }}</p>
+                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
+                    <hr>
+                    <h6>Shipping Information:</h6>
+                    <p class="mb-1"><strong>Name:</strong> {{ shipping_info.name }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ shipping_info.phone }}</p>
+                    <p class="mb-1"><strong>Address:</strong> {{ shipping_info.address }}</p>
+                    <p><strong>Postal Code:</strong> {{ shipping_info.postal_code }}</p>
+                    <hr>
+                    <a href="{% url 'cart:shipping' %}" class="btn btn-outline-secondary d-block">Back to Shipping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('simulate-payment').addEventListener('click', function() {
+        window.location.href = "{% url 'cart:payment_success' %}";
+    });
+</script>
+{% endblock %}
