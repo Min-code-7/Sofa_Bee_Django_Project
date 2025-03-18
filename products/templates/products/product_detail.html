@@ -5,13 +5,19 @@
     <!-- product details -->
     <div class="row">
         <div class="col-md-5">
-            <img src="{{ product.image }}" alt="{{ product.name }}" class="img-fluid">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+            {% else %}
+            <div class="text-center py-5 bg-light">No Image Available</div>
+            {% endif %}
         </div>
         <div class="col-md-7">
             <h2>{{ product.name }}</h2>
             <p>{{ product.description }}</p>
             <p class="text-primary"><strong>Price: ${{ product.price }}</strong></p>
-            <button class="btn btn-success">Add to Cart</button>
+            <p><strong>Category:</strong> {{ product.category.name }}</p>
+            <p><strong>Stock:</strong> {{ product.stock }} units available</p>
+            <button class="btn btn-success" onclick="addToCart({{ product.id }})">Add to Cart</button>
         </div>
     </div>
 
@@ -109,6 +115,7 @@
 </div>
     
 <!-- AJAX implement filter-->    
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 function filterReviews() {
     let rating = $("#filter-rating").val();

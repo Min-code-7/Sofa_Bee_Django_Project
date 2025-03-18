@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.templatetags.static import static
+from django.contrib import messages
 
 from reviews.forms import ReviewForm
 from .forms import ProductForm
@@ -59,39 +60,34 @@ def product_list(request):
 # testing product_list function
 def product_list(request):
 
-
-
-
     # get keyword
     query = request.GET.get('q', '').strip().lower()
     # print("keywords: ", query)
 
     # get category
-    category = request.GET.get('category', '')
+    category_name = request.GET.get('category', '')
 
-    products = PRODUCTS
+    products = Product.objects.all()
 
     if query:
-        products = [p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()]
+        products = products.filter(name__icontains=query) | products.filter(description__icontains=query)
 
-    if category:
-        products = [p for p in PRODUCTS if p["category"].lower() == category.lower()]
+    if category_name:
+        products = products.filter(category__name__iexact=category_name)
 
-    categories = set(p["category"] for p in PRODUCTS)
+    categories = Category.objects.all()
 
-    return render(request, "products/product_list.html", {"products": products, "query": query, "categories": categories, "selected_category": category})
+    return render(request, "products/product_list.html", {"products": products, "query": query, "categories": categories, "selected_category": category_name})
 
 
 def product_detail(request, product_id):
 
-    """
 
     # use sqlite
     product = get_object_or_404(Product, id=product_id)
-    return render(request, 'products/product_detail.html', {'product': product})
-    """
+    # return render(request, 'products/product_detail.html', {'product': product})
     # use test data
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    # product = next((p for p in PRODUCTS if p["id"] == product_id), None)
 
 
     if product is None:
@@ -123,6 +119,8 @@ def product_search(request):
     # products = Product.objects.filter(name__icontains=query)
     category = request.GET.get('category', '').strip().lower()
 
+    products = Product.objects.all()
+
     """
     data = {
         'products': [
@@ -138,39 +136,70 @@ def product_search(request):
         ]
     }
     """
-    if not category:
-        filtered_products = [
-            p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()
-        ]
-    else:
-        filtered_products = [
-            p for p in PRODUCTS
-            if (query in p["name"].lower() or query in p["description"].lower()) and (not category or p["category"].lower() == category)
-        ]
+    if query:
+        products = products.filter(name__icontains=query) | products.filter(description__icontains=query)
 
-    # return JsonResponse(data)
-    return JsonResponse({"products": filtered_products})
+    if category:
+        products = products.filter(category__name__iexact=category)
 
-# @login_required
+    data = {
+        'products': [
+            {
+                'id': product.id,
+                'name': product.name,
+                'description': product.description,
+                'price': float(product.price),
+                'image': product.image.url if product.image else None,
+                'created_at': product.created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(product,
+                                                                                          'created_at') else '',
+            }
+            for product in products
+        ]
+    }
+
+    return JsonResponse(data)
+
+
+@login_required
 def add_product(request):
+    if not hasattr(request.user, "userprofile") or request.user.userprofile.user_type != 'merchant':
+        messages.error(request, "You are not allowed to add product.")
+        return redirect('products:product_list')
+
+    Category.create_default_categories()
+
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
-            # product.seller = request.user
+            product.seller = request.user
             product.save()
-            return redirect('product_list')
+            return redirect('products:product_list')
     else:
         form = ProductForm()
 
     return render(request, 'products/add_product.html', {'form': form})
 
+
 def filter_category(request):
     category = request.GET.get('category', None)
+
     if category:
         products = Product.objects.filter(category__name=category)
     else:
         products = Product.objects.all()
 
-    data = {'products': list(products.values('id', 'name', 'description', 'price', 'image'))}
+    data = {
+        'products': [
+            {
+                'id': product.id,
+                'name': product.name,
+                'description': product.description,
+                'price': float(product.price),
+                'image': product.image.url if product.image else None,
+            }
+            for product in products
+        ]
+    }
+
     return JsonResponse(data)

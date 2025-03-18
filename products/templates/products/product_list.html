@@ -22,7 +22,9 @@
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm">
                 {% if product.image %}
-                <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                {% else %}
+                <div class="text-center py-5 bg-light">No Image</div>
                 {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
@@ -59,10 +61,14 @@
                     $("#product-list").html("<p class='text-muted text-center'>No matching items found.</p>");
                 } else {
                     $.each(data.products, function(index, product) {
+                        var imageHtml = product.image ? 
+                            `<img src="${product.image}" class="card-img-top" alt="${product.name}">` : 
+                            '<div class="text-center py-5 bg-light">No Image</div>';
+                            
                         $("#product-list").append(`
                             <div class="col-md-4 mb-4">
                                 <div class="card shadow-sm">
-                                    <img src="${product.image}" class="card-img-top" alt="${product.name}">
+                                    ${imageHtml}
                                     <div class="card-body">
                                         <h5 class="card-title">${product.name}</h5>
                                         <p class="card-text">${product.description}</p>
@@ -98,36 +104,36 @@
 						break;
 					}
 				}
+            }
+            return cookieValue;
         }
-        return cookieValue;
+    
+        const csrftoken = getCookie('csrftoken');
+    
+        fetch(`/cart/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Response data:", data);
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload(); 
+            } else {
+                alert(data.message || 'Error adding to cart');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding to cart');
+        });
     }
-    
-    const csrftoken = getCookie('csrftoken');
-    
-    fetch(`/cart/add/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken
-        }
-    })
-    .then(response => {
-        console.log("Response status:", response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log("Response data:", data);
-        if (data.status === 'success') {
-            alert(data.message);
-            location.reload(); 
-        } else {
-            alert(data.message || 'Error adding to cart');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while adding to cart');
-    });
-}
 </script>
 {% endblock %}
