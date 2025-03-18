@@ -15,16 +15,29 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, re_path, include
-from profiles import urls as profiles_urls
-from profiles.views import profiles
-from addresses import views as addresses_views
-from orders import views as orders_views
+from django.urls import path, include
+
 from profiles import views
+from .views import home
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('products/', include('products.urls', namespace='products')),
+
+    #path('accounts/', include('django.contrib.auth.urls')),
+    path('users/', include('users.urls')),
+    path('cart/', include('cart.urls', namespace='cart')),
+
+    path('', home, name='home'),  
+    path('orders/', include('orders.urls')),
     path('profiles/', include('profiles.urls')),  # 引入 profiles app 的 urls.py
     path('addresses/', include('addresses.urls')),  # 引入 addresses app 的 urls.py
     path('verify_captcha/', views.compare_code, name='verify'),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -24,9 +24,9 @@
                             <div class="col-md-6">
                                 <h6>order inforamtion</h6>
                                 <ul class="list-unstyled">
-                                    <li><strong>order number:</strong>{{ order_info.order_id }}</li>
-                                    <li><strong>order time: </strong>{{ order_info.order_time }}</li>
-                                    <li><strong>pay time: </strong>{{ order_info.paid_time }}</li>
+                                    <li><strong>Order Number:</strong>{{ order_info.order_number }}</li>
+                                    <li><strong>Status: </strong>{{ order_info.status }}</li>
+                                    <li><strong>Pay Method: </strong>{{ order_info.payment_method }}</li>
 
                                 </ul>
                             </div>
@@ -34,9 +34,10 @@
                                 <h6>address</h6>
                                 <ul class="list-unstyled">
                                     <li>
-                                        <strong>address: </strong>{{ order_info.address.detail_address }} {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                                        <strong>Address: </strong>{{ order_info.address.detail_address }} {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
                                     </li>
-                                    <li><strong>pay status: </strong>{{ order_info.paid_status }}</li>
+                                    <li><strong>Create at: </strong>{{ order_info.created_at }}</li>
+                                    <li><strong>Paid at: </strong>{{ order_info.paid_at }}</li>
                                 </ul>
                             </div>
                         </div>
@@ -71,10 +72,10 @@
                                     <tr>
                                         <td>
                                             <img style="width: 80px; height: 80px;" src="{{ item_detail.picture }}">
-                                            <span>{{ item_detail.item_name }}</span>
+                                            <span>{{ item_detail.product_name }}</span>
                                         </td>
                                         <td>{{ item_detail.description }}</td>
-                                        <td>{{ item_detail.price }}</td>
+                                        <td>{{ item_detail.item_price }}</td>
                                         <td>{{ item_detail.quantity }}</td>
                                         <td>{{ item_detail.total_price }}</td>
                                     </tr>

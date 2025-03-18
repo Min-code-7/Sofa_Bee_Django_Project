@@ -60,10 +60,10 @@
                     <thead>
                     <tr>
                         <th scope="col" style="width: 30%" class="no-border-right no-border-left">
-                            <span>order number：</span>{{ order.order_id }}</th>
-                        <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
-                        <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
-                        <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
+                            <span>order number：</span>{{ order.order_number }}</th>
+                        <th scope="col" style="width:10%" class="no-border-right no-border-left">{{ order.created_at }}</th>
+                        <th scope="col" style="width:10%" class="no-border-right no-border-left">{{ order.paid_at }}</th>
+                        <th scope="col" style="width:10%" class="no-border-right no-border-left">{{ order.payment_method }}</th>
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
@@ -103,7 +103,6 @@
                                     </nav>
                                 </td>
                             {% endif %}
-
 
                         </tr>
                     {% endfor %}

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,14 +10,6 @@
     <script src="{% static 'js/verify_code.js' %}"></script>
 
     <style>
-        .profile-image {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
 
         .profile-card {
             max-width: 600px;
@@ -27,9 +20,6 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
 
-        .profile-info {
-            margin-top: 20px;
-        }
 
         .profile-info label {
             font-weight: bold;
@@ -42,7 +32,8 @@
             background-color: #f8f9fa;
             border-radius: 5px;
         }
-        .a{
+
+        .a {
             width: 300px;
             height: 100px;
             text-align: center;
@@ -67,8 +58,8 @@
                            href="{% url 'profiles' id=user.id %}">
                             <h3>Profile</h3>
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action a">cart</a>
-                        <a href="#" class="list-group-item list-group-item-action a">my orders</a>
+                        <a href="{% url 'cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
+                        <a href="{% url 'list_orders' %}" class="list-group-item list-group-item-action a">my orders</a>
                         <a class="list-group-item list-group-item-action a" href="{% url 'history_order' id=user.id %}">history
                             orders</a>
                         <a class="list-group-item list-group-item-action a"
@@ -122,7 +113,8 @@
                                         <input type="text" class="form-control" placeholder="Verification Code"
                                                aria-label="Recipient's username"
                                                aria-describedby="button-addon2" id="captcha" name="captcha">
-                                        <button class="btn btn-secondary" type="button" id="captcha-btn">Get Verification Code
+                                        <button class="btn btn-secondary" type="button" id="captcha-btn">Get
+                                            Verification Code
                                         </button>
                                         <button class="btn btn-secondary" type="button" id="compare-btn">Verify</button>
                                     </div>

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}cart{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">CART</h1>
+    
+    <!-- Search form -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-6">
+            <div class="input-group">
+                <input type="text" id="cart-search" class="form-control" placeholder="Search in cart...">
+                <button class="btn btn-primary" type="button" id="search-btn">search</button>
+            </div>
+        </div>
+    </div>
+    
+    {% if cart.items.count == 0 %}
+        <div class="alert alert-info">
+            Your cart is empty. <a href="{% url 'products:product_list' %}">Continue shopping</a>
+        </div>
+    {% else %}
+        <form id="cart-form" method="post" action="{% url 'cart:checkout' %}">
+            {% csrf_token %}
+            
+            <!-- Items grouped by shop -->
+            {% for shop_name, items in shops_items.items %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <div class="form-check">
+                            <input class="form-check-input shop-checkbox" type="checkbox" value="{{ shop_name }}" id="shop-{{ forloop.counter }}">
+                            <label class="form-check-label" for="shop-{{ forloop.counter }}">
+                                <strong>{{ shop_name }}</strong>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <tbody>
+                                    {% for item in items %}
+                                        <tr>
+                                            <td class="align-middle" style="width: 5%;">
+                                                <div class="form-check">
+                                                    <input class="form-check-input item-checkbox" 
+                                                           type="checkbox" 
+                                                           name="items[]" 
+                                                           value="{{ item.id }}" 
+                                                           data-shop="{{ shop_name }}"
+                                                           id="item-{{ item.id }}">
+                                                </div>
+                                            </td>
+                                            <!-- <td class="align-middle" style="width: 15%;">
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail" style="max-width: 100px;">
+                                            </td>
+                                            <td class="align-middle" style="width: 30%;">
+                                                <h5>{{ item.product.name }}</h5>
+                                                <p class="text-muted small">
+                                                    describe(size,color)
+                                                </p>
+                                            </td> 测试-->
+											<td class="align-middle" style="width: 15%;">
+												<img src="{{ item.product_image }}" alt="{{ item.product_name }}" class="img-thumbnail" style="max-width: 100px;">
+											</td>
+											<td class="align-middle" style="width: 30%;">
+												<h5>{{ item.product_name }}</h5>
+												<p class="text-muted small">
+													describe(size,color)
+												</p>
+											</td>
+											
+											
+                                            <td class="align-middle text-center" style="width: 20%;">
+                                                <div class="input-group input-group-sm">
+                                                    <button class="btn btn-outline-secondary quantity-btn" type="button" data-action="decrease" data-item="{{ item.id }}">-</button>
+                                                    <input type="number" class="form-control text-center quantity-input" 
+                                                           name="quantity-{{ item.id }}" 
+                                                           min="1" 
+                                                           value="{{ item.quantity }}" 
+                                                           data-item="{{ item.id }}">
+                                                    <button class="btn btn-outline-secondary quantity-btn" type="button" data-action="increase" data-item="{{ item.id }}">+</button>
+                                                </div>
+                                            </td>
+                                            <!-- <td class="align-middle text-end" style="width: 15%;">
+                                                <strong class="item-price" data-price="{{ item.product.price }}" data-item="{{ item.id }}">
+                                                    ${{ item.get_price }}
+                                                </strong>
+                                            </td> 测试-->
+											<td class="align-middle text-end" style="width: 15%;">
+												<strong class="item-price" data-price="{{ item.product_price }}" data-item="{{ item.id }}">
+													${{ item.get_price }}
+												</strong>
+											</td>
+											
+											
+                                            <td class="align-middle text-center" style="width: 15%;">
+                                                <button type="button" class="btn btn-sm btn-danger remove-item" data-item="{{ item.id }}">delete</button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Cart Summary and Checkout -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="select-all">
+                            <label class="form-check-label" for="select-all">
+                                All
+                            </label>
+                        </div>
+                        <div>
+                            <span class="h5 me-3">Total: <strong id="total-price">${{ total_price }}</strong></span>
+                            <button type="button" id="checkout-btn" class="btn btn-primary btn-lg">CHECKOUT</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all checkbox functionality
+        const selectAllCheckbox = document.getElementById('select-all');
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+        const shopCheckboxes = document.querySelectorAll('.shop-checkbox');
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                itemCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                shopCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateTotalPrice();
+            });
+        }
+        
+        // Shop checkboxes
+        shopCheckboxes.forEach(shopCheckbox => {
+            shopCheckbox.addEventListener('change', function() {
+                const shopName = this.value;
+                const isChecked = this.checked;
+                document.querySelectorAll(`.item-checkbox[data-shop="${shopName}"]`).forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateTotalPrice();
+            });
+        });
+        
+        // Item checkboxes
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateTotalPrice();
+            });
+        });
+        
+        // Quantity buttons
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item');
+                const input = document.querySelector(`.quantity-input[data-item="${itemId}"]`);
+                let quantity = parseInt(input.value);
+                
+                if (this.getAttribute('data-action') === 'increase') {
+                    quantity += 1;
+                } else {
+                    quantity -= 1;
+                    if (quantity < 1) quantity = 1;
+                }
+                
+                input.value = quantity;
+                
+                // Update on server using AJAX
+                fetch(`/cart/update/${itemId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `quantity=${quantity}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.querySelector(`.item-price[data-item="${itemId}"]`).textContent = 
+                            '$' + data.item_price.toFixed(2);
+                        document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                    }
+                });
+            });
+        });
+        
+        // Remove item buttons
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item');
+                if (confirm('Are you sure you want to remove this item?')) {
+                    fetch(`/cart/remove/${itemId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove the item row
+                            this.closest('tr').remove();
+                            document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                            
+                            // If no items left, refresh the page
+                            if (data.cart_total === 0) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Search functionality
+        document.getElementById('search-btn')?.addEventListener('click', function() {
+            const query = document.getElementById('cart-search').value;
+            if (query) {
+                window.location.href = `{% url 'cart:cart_detail' %}?q=${encodeURIComponent(query)}`;
+            }
+        });
+        
+        // Checkout button
+        document.getElementById('checkout-btn')?.addEventListener('click', function() {
+            const selectedItems = document.querySelectorAll('.item-checkbox:checked');
+            if (selectedItems.length === 0) {
+                alert('Please select at least one item to checkout.');
+                return;
+            }
+            
+            document.getElementById('cart-form').submit();
+        });
+        
+        // Helper function to update total price based on selected items
+        function updateTotalPrice() {
+            let total = 0;
+            document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+                const itemId = checkbox.value;
+                const row = checkbox.closest('tr');
+                const quantity = parseInt(row.querySelector('.quantity-input').value);
+                const price = parseFloat(row.querySelector('.item-price').getAttribute('data-price'));
+                total += quantity * price;
+            });
+            document.getElementById('total-price').textContent = '$' + total.toFixed(2);
+        }
+    });
+</script>
+{% endblock %}

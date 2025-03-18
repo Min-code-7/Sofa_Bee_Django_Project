@@ -1,0 +1,67 @@
+<!-- shipping.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+
+{% block title %}Shipping Information{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Shipping Information</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Enter Your Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                            {{ form.name.errors }}
+                            {{ form.name|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                            {{ form.phone.errors }}
+                            {{ form.phone|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address.id_for_label }}" class="form-label">{{ form.address.label }}</label>
+                            {{ form.address.errors }}
+                            {{ form.address|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.postal_code.id_for_label }}" class="form-label">{{ form.postal_code.label }}</label>
+                            {{ form.postal_code.errors }}
+                            {{ form.postal_code|add_class:"form-control" }}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Continue to Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Items:</strong> {{ cart.get_total_items }}</p>
+                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
+                    <hr>
+                    <a href="{% url 'cart:checkout' %}" class="btn btn-outline-secondary d-block">Back to Checkout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

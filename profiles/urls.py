@@ -8,4 +8,5 @@ urlpatterns = [
 
     path('history_order/<int:id>/', history_order, name='history_order'),
     path('order_detail/<int:id>/', order_detail, name='order_detail'),
+
 ]

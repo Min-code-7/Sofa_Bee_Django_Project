@@ -30,7 +30,7 @@
 </head>
 <body>
 <div style="display: flex; min-height: 100vh;">
-    <!-- 左边灰色背景 -->
+
     <div style="flex: 1; background-color: #f0f0f0;">
 
         <div class="container" style="flex: 3; background-color: white; height: 100%;padding-top: 150px">
@@ -41,8 +41,8 @@
                         <a class="list-group-item list-group-item-action a" aria-current="true" href="{% url 'profiles' id=user.id %}">
                            <h3>Profile</h3>
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action a">cart</a>
-                        <a href="#" class="list-group-item list-group-item-action a">my orders</a>
+                        <a href="{% url 'cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
+                        <a href="{% url 'list_orders' %}" class="list-group-item list-group-item-action a">my orders</a>
                         <a class="list-group-item list-group-item-action a" href="{% url 'history_order' id=user.id %}">history orders</a>
                         <a class="list-group-item list-group-item-action a" href="{% url 'modify_profile' id=user.id %}">setting</a>
 
