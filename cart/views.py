@@ -20,7 +20,7 @@ def get_cart(request):
 
 @login_required
 def cart_detail(request):
-    """Display all items in the user's cart, grouped by shop/merchant."""
+    """Display all items in the user's cart, grouped by shop/merchant.
     cart = get_cart(request)
     if not cart:
         return redirect('users:login')
@@ -42,6 +42,30 @@ def cart_detail(request):
         'total_price': cart.get_total_price(),
     }
     return render(request, 'cart/cart.html', context)
+    """
+    cart = get_cart(request)
+    if not cart:
+        return redirect('users:login')
+    
+    # 获取购物车项目
+    cart_items = cart.items.all()
+    
+    # 按类别分组 (模拟按商店分组)
+    # 由于我们没有真正的商店信息，我们可以假设每个产品ID的第一个数字是商店ID
+    shops_items = {}
+    for item in cart_items:
+        shop_id = f"Shop {item.product_id_test % 3 + 1}"  # productid注意！
+        if shop_id not in shops_items:
+            shops_items[shop_id] = []
+        shops_items[shop_id].append(item)
+    
+    context = {
+        'cart': cart,
+        'shops_items': shops_items,
+        'total_price': sum(item.get_price() for item in cart_items),
+    }
+    return render(request, 'cart/cart.html', context)
+    
 
 @login_required
 @require_POST
@@ -84,11 +108,35 @@ def cart_add(request, product_id):
     if not product:
         return JsonResponse({"status": "error", "message": "Product not found"}, status=404)
     
-    # 模拟添加到购物车
+    # 查找或创建购物车项
+    try:
+        # 使用修改后的字段名
+        cart_item = CartItem.objects.filter(cart=cart, product_id_test=product_id).first()
+        
+        if cart_item:
+            # 如果存在，增加数量
+            cart_item.quantity += 1
+            cart_item.save()
+        else:
+            # 如果不存在，创建新的购物车项
+            # 使用修改后的字段名
+            CartItem.objects.create(
+                cart=cart,
+                product_id_test=product_id,  # 改为新的字段名
+                product_name=product["name"],
+                product_price=product["price"],
+                product_image=product["image"],
+                quantity=1
+            )
+    
+    except Exception as e:
+        print(f"Error adding item to cart: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
     return JsonResponse({
         "status": "success",
         "message": f"{product['name']} has been added to your cart.",
-        "cart_total": 1  # 简化逻辑
+        "cart_total": cart.items.count()
     })
 
 @login_required
@@ -134,42 +182,80 @@ def cart_update(request, item_id):
 
 @login_required
 def cart_search(request):
-    """Search for items in the cart."""
+
+    # #Search for items in the cart.
+    # query = request.GET.get('q', '')
+    # cart = get_cart(request)
+    
+    # if query:
+        # items = cart.items.filter(
+            # Q(product__name__icontains=query) | 
+            # Q(product__description__icontains=query)
+        # ).select_related('product')
+    # else:
+        # items = cart.items.all().select_related('product')
+    
+    # items_data = []
+    # for item in items:
+        # items_data.append({
+            # 'id': item.id,
+            # 'product_id': item.product.id,
+            # 'name': item.product.name,
+            # 'price': float(item.product.price),
+            # 'quantity': item.quantity,
+            # 'total_price': float(item.get_price()),
+            # 'image': item.product.image.url if item.product.image else None,
+        # })
+    
+    # return JsonResponse({'items': items_data})
+
     query = request.GET.get('q', '')
     cart = get_cart(request)
     
     if query:
         items = cart.items.filter(
-            Q(product__name__icontains=query) | 
-            Q(product__description__icontains=query)
-        ).select_related('product')
+            Q(product_name__icontains=query)  # 使用product_name而不是product__name
+        )
     else:
-        items = cart.items.all().select_related('product')
+        items = cart.items.all()
     
     items_data = []
     for item in items:
         items_data.append({
             'id': item.id,
-            'product_id': item.product.id,
-            'name': item.product.name,
-            'price': float(item.product.price),
+            'product_id': item.product_id_test,  # 使用正确的字段
+            'name': item.product_name,
+            'price': float(item.product_price),
             'quantity': item.quantity,
             'total_price': float(item.get_price()),
-            'image': item.product.image.url if item.product.image else None,
+            'image': item.product_image,
         })
     
     return JsonResponse({'items': items_data})
 
 @login_required
 def checkout(request):
-    """Display checkout page with cart summary."""
+
+    # 修改
+    # #Display checkout page with cart summary.
+    # cart = get_cart(request)
+    # if not cart or cart.items.count() == 0:
+        # return redirect('products:product_list')
+    
+    # context = {
+        # 'cart': cart,
+        # 'cart_items': cart.items.select_related('product').all(),
+        # 'total_price': cart.get_total_price(),
+    # }
+    # return render(request, 'cart/checkout.html', context)
+
     cart = get_cart(request)
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
     
     context = {
         'cart': cart,
-        'cart_items': cart.items.select_related('product').all(),
+        'cart_items': cart.items.all(),  # 删除select_related('product')
         'total_price': cart.get_total_price(),
     }
     return render(request, 'cart/checkout.html', context)
@@ -227,7 +313,8 @@ def payment(request):
 
 @login_required
 def payment_success(request):
-    """Process successful payment and create order."""
+
+    #Process successful payment and create order.
     cart = get_cart(request)
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
@@ -251,9 +338,11 @@ def payment_success(request):
     for cart_item in cart.items.all():
         OrderItem.objects.create(
             order=order,
-            product_name=cart_item.product.name,
+            #product_name=cart_item.product.name,
+            product_name=cart_item.product_name,  # 使用product_name而不是product.name
             quantity=cart_item.quantity,
-            price=cart_item.product.price,
+            #price=cart_item.product.price,
+            price = cart_item.product_price,  # 使用product_price而不是product.price
         )
     
     # Clear the cart

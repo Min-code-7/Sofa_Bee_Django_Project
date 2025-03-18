@@ -81,53 +81,58 @@
         });
     }
     
-  
+    <!-- function addToCart(productId) {
+        fetch(`/cart/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload(); 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding to cart');
+        });
+    } -->
 	
 	function addToCart(productId) {
+    
 		console.log("Adding product to cart:", productId);
     
-		// 从cookie获取CSRF令牌
-		function getCookie(name) {
-			let cookieValue = null;
-			if (document.cookie && document.cookie !== '') {
-				const cookies = document.cookie.split(';');
-				for (let i = 0; i < cookies.length; i++) {
-					const cookie = cookies[i].trim();
-					if (cookie.substring(0, name.length + 1) === (name + '=')) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
-				}
-        }
-        return cookieValue;
-    }
+   
+		const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
-    const csrftoken = getCookie('csrftoken');
-    
-    fetch(`/cart/add/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken
-        }
-    })
-    .then(response => {
-        console.log("Response status:", response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log("Response data:", data);
-        if (data.status === 'success') {
-            alert(data.message);
-            location.reload(); 
-        } else {
-            alert(data.message || 'Error adding to cart');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while adding to cart');
-    });
-}
+		fetch(`/cart/add/${productId}/`, {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+				'X-CSRFToken': csrftoken
+			}
+		})
+		.then(response => {
+			console.log("Response status:", response.status);
+			return response.json();
+		})
+		.then(data => {
+			console.log("Response data:", data);
+			if (data.status === 'success') {
+				alert(data.message);
+				location.reload(); 
+			} else {
+				alert(data.message || 'Error adding to cart');
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred while adding to cart');
+		});
+	}
 </script>
 {% endblock %}
