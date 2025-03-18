@@ -273,23 +273,43 @@
 		});
         
         // Search functionality
-        document.getElementById('search-btn')?.addEventListener('click', function() {
-            const query = document.getElementById('cart-search').value;
-            if (query) {
-                window.location.href = `{% url 'cart:cart_detail' %}?q=${encodeURIComponent(query)}`;
-            }
-        });
+        var searchBtn = document.getElementById('search-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function() {
+                var query = document.getElementById('cart-search').value;
+                if (query) {
+                    window.location.href = "{% url 'cart:cart_detail' %}?q=" + encodeURIComponent(query);
+                }
+            });
+        }
+        
+        // Also enable search on Enter key
+        var searchInput = document.getElementById('cart-search');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    var query = this.value;
+                    if (query) {
+                        window.location.href = "{% url 'cart:cart_detail' %}?q=" + encodeURIComponent(query);
+                    }
+                }
+            });
+        }
         
         // Checkout button
-        document.getElementById('checkout-btn')?.addEventListener('click', function() {
-            const selectedItems = document.querySelectorAll('.item-checkbox:checked');
-            if (selectedItems.length === 0) {
-                alert('Please select at least one item to checkout.');
-                return;
-            }
-            
-            document.getElementById('cart-form').submit();
-        });
+        var checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function() {
+                var selectedItems = document.querySelectorAll('.item-checkbox:checked');
+                if (selectedItems.length === 0) {
+                    alert('Please select at least one item to checkout.');
+                    return;
+                }
+                
+                document.getElementById('cart-form').submit();
+            });
+        }
         
         // Helper function to update total price based on selected items
         function updateTotalPrice() {

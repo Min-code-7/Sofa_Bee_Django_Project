@@ -50,6 +50,13 @@ def cart_detail(request):
     # Get cart items
     cart_items = cart.items.all()
     
+    # Handle search query
+    query = request.GET.get('q', '')
+    if query:
+        cart_items = cart_items.filter(
+            Q(product_name__icontains=query)  # Use product_name instead of product__name
+        )
+    
     # Group by category (simulating grouping by shop)
     # Since we don't have real shop information, we can assume the first digit of each product ID is the shop ID
     shops_items = {}
@@ -63,6 +70,7 @@ def cart_detail(request):
         'cart': cart,
         'shops_items': shops_items,
         'total_price': sum(item.get_price() for item in cart_items),
+        'search_query': query,  # Pass the search query to the template
     }
     return render(request, 'cart/cart.html', context)
     
