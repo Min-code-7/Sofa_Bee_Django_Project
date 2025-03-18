@@ -9,7 +9,7 @@ class UserProfile(models.Model):
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='regular')    # type
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='regular')    # user type
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     
     def __str__(self):

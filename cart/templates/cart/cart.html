@@ -257,14 +257,14 @@
 								alertDiv.remove();
 							}, 5000);
 						} else {
-							alert(data.message || 'fail to delete!');
+							alert(data.message || 'Failed to delete!');
 							button.innerHTML = 'delete';
 							button.disabled = false;
 						}
 					})
 					.catch(error => {
 						console.error('delete error:', error);
-						alert('delete error, wait for a second');
+						alert('Delete error, please try again in a moment');
 						button.innerHTML = 'delete';
 						button.disabled = false;
 					});

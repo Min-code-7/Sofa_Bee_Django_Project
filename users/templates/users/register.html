@@ -78,7 +78,7 @@
 document.getElementById("send-code").addEventListener("click", function() {
     var email = document.querySelector("input[name='email']").value;
     if (!email) {
-        alert("Please input email first！");
+        alert("Please input email first!");
         return;
     }
 
@@ -105,5 +105,3 @@ if (urlParams.get('user_type') === 'merchant') {
 }
 </script>
 {% endblock %}
-
-

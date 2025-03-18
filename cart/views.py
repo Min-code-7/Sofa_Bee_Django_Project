@@ -47,14 +47,14 @@ def cart_detail(request):
     if not cart:
         return redirect('users:login')
     
-    # 获取购物车项目
+    # Get cart items
     cart_items = cart.items.all()
     
-    # 按类别分组 (模拟按商店分组)
-    # 由于我们没有真正的商店信息，我们可以假设每个产品ID的第一个数字是商店ID
+    # Group by category (simulating grouping by shop)
+    # Since we don't have real shop information, we can assume the first digit of each product ID is the shop ID
     shops_items = {}
     for item in cart_items:
-        shop_id = f"Shop {item.product_id_test % 3 + 1}"  # productid注意！
+        shop_id = f"Shop {item.product_id_test % 3 + 1}"  # Note the product ID!
         if shop_id not in shops_items:
             shops_items[shop_id] = []
         shops_items[shop_id].append(item)
@@ -97,7 +97,7 @@ def cart_add(request, product_id):
     if not cart:
         return redirect('users:login')
     
-    # 获取产品 (使用测试数据)
+    # Get product (using test data)
     from products.views import PRODUCTS
     product = None
     for p in PRODUCTS:
@@ -108,21 +108,21 @@ def cart_add(request, product_id):
     if not product:
         return JsonResponse({"status": "error", "message": "Product not found"}, status=404)
     
-    # 查找或创建购物车项
+    # Find or create cart item
     try:
-        # 使用修改后的字段名
+        # Use modified field name
         cart_item = CartItem.objects.filter(cart=cart, product_id_test=product_id).first()
         
         if cart_item:
-            # 如果存在，增加数量
+            # If exists, increase quantity
             cart_item.quantity += 1
             cart_item.save()
         else:
-            # 如果不存在，创建新的购物车项
-            # 使用修改后的字段名
+            # If not exists, create new cart item
+            # Use modified field name
             CartItem.objects.create(
                 cart=cart,
-                product_id_test=product_id,  # 改为新的字段名
+                product_id_test=product_id,  # Changed to new field name
                 product_name=product["name"],
                 product_price=product["price"],
                 product_image=product["image"],
@@ -163,14 +163,14 @@ def cart_remove(request, item_id):
         
         return JsonResponse({
             'status': 'success',
-            'message': "商品已从购物车中移除",
+            'message': "Item has been removed from cart",
             'cart_total': cart.items.count(),
             'cart_price': float(cart.get_total_price())
         })
     except Exception as e:
         return JsonResponse({
             'status': 'error',
-            'message': f"删除失败: {str(e)}"
+            'message': f"Delete failed: {str(e)}"
         }, status=500)
 
 @login_required
@@ -231,7 +231,7 @@ def cart_search(request):
     
     if query:
         items = cart.items.filter(
-            Q(product_name__icontains=query)  # 使用product_name而不是product__name
+            Q(product_name__icontains=query)  # Use product_name instead of product__name
         )
     else:
         items = cart.items.all()
@@ -240,7 +240,7 @@ def cart_search(request):
     for item in items:
         items_data.append({
             'id': item.id,
-            'product_id': item.product_id_test,  # 使用正确的字段
+            'product_id': item.product_id_test,  # Use correct field
             'name': item.product_name,
             'price': float(item.product_price),
             'quantity': item.quantity,
@@ -272,7 +272,7 @@ def checkout(request):
     
     context = {
         'cart': cart,
-        'cart_items': cart.items.all(),  # 删除select_related('product')
+        'cart_items': cart.items.all(),  # Remove select_related('product')
         'total_price': cart.get_total_price(),
     }
     return render(request, 'cart/checkout.html', context)

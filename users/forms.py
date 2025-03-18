@@ -24,7 +24,6 @@ class UserRegisterForm(forms.ModelForm):
         confirm_password = cleaned_data.get("confirm_password")
 
         if password and confirm_password and password != confirm_password:
-            raise ValidationError("The passwords entered twice are inconsistent!")
+            raise ValidationError("The passwords entered do not match!")
 
         return cleaned_data
-    

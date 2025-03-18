@@ -71,47 +71,47 @@ def register(request):
     user_type = request.GET.get("user_type", "regular")
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
-        print("表单提交了，验证结果:", form.is_valid())
+        print("Form submitted, validation result:", form.is_valid())
         if not form.is_valid():
-            print("表单验证错误:", form.errors)
+            print("Form validation errors:", form.errors)
         
         if form.is_valid():
             email = form.cleaned_data["email"]
             input_code = form.cleaned_data["verification_code"]
             real_code = request.session.get("verification_code")
             
-            print(f"输入的验证码: {input_code}")
-            print(f"session中的验证码: {real_code}")
+            print(f"Input verification code: {input_code}")
+            print(f"Verification code in session: {real_code}")
 
             if input_code != real_code:
-                messages.error(request, "验证码错误!")
-                print("验证码不匹配")
+                messages.error(request, "Verification code error!")
+                print("Verification code does not match")
                 return redirect("users:register")
 
-            # 创建用户
+            # Create user
             try:
                 user = form.save(commit=False)
                 user.set_password(form.cleaned_data["password"])
                 user.save()
-                print(f"用户已创建: {user.username}")
+                print(f"User created: {user.username}")
                 
-                # 创建UserProfile
+                # Create UserProfile
                 profile = UserProfile.objects.create(
                     user=user,
                     user_type=form.cleaned_data["user_type"],
                     phone_number=form.cleaned_data["phone_number"]
                 )
-                print(f"用户资料已创建: {profile}")
+                print(f"User profile created: {profile}")
                 
-                # 登录
+                # Login
                 login(request, user)
-                print("用户已登录")
+                print("User logged in")
                 return redirect("products:product_list")
             except Exception as e:
-                print(f"创建用户时出错: {e}")
-                messages.error(request, f"注册失败: {e}")
+                print(f"Error creating user: {e}")
+                messages.error(request, f"Registration failed: {e}")
     else:
-        form = UserRegisterForm(initial={'user_type': user_type})  # 确保这里有代码
+        form = UserRegisterForm(initial={'user_type': user_type})  # Ensure code is here
 
     return render(request, "users/register.html", {"form": form})
 

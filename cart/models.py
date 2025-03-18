@@ -1,9 +1,7 @@
-
-
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
-from products.models import Product  # 假设商品模型在 `products` app 里
+from products.models import Product  # Assuming the product model is in the `products` app
 '''
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -38,10 +36,10 @@ class CartItem(models.Model):
         # unique_together = ['cart', 'product']
 
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    product_id_test = models.IntegerField(default=1)  # 存储产品ID
-    product_name = models.CharField(max_length=255, null=True, blank=True)  # 存储产品名称
-    product_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # 存储产品价格
-    product_image = models.CharField(max_length=255, null=True, blank=True)  # 存储产品图片URL
+    product_id_test = models.IntegerField(default=1)  # Store product ID
+    product_name = models.CharField(max_length=255, null=True, blank=True)  # Store product name
+    product_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Store product price
+    product_image = models.CharField(max_length=255, null=True, blank=True)  # Store product image URL
     quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)
     
