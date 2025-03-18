@@ -17,6 +17,17 @@
         </div>
     </div>
     
+    <!-- Search results notification -->
+    {% if search_query %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <i class="bi bi-search me-2"></i>
+            <span>Search results for: <strong>"{{ search_query }}"</strong></span>
+        </div>
+        <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary btn-sm">Clear search results</a>
+    </div>
+    {% endif %}
+    
     {% if cart.items.count == 0 %}
         <div class="alert alert-info">
             Your cart is empty. <a href="{% url 'products:product_list' %}">Continue shopping</a>
