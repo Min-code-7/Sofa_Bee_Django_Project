@@ -142,19 +142,36 @@ def cart_add(request, product_id):
 @login_required
 def cart_remove(request, item_id):
     """Remove an item from the cart."""
-    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-    cart_item.delete()
+    # cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    # cart_item.delete()
     
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # cart = get_cart(request)
+        # return JsonResponse({
+            # 'status': 'success',
+            # 'message': "Item removed from cart.",
+            # 'cart_total': cart.get_total_items(),
+            # 'cart_price': float(cart.get_total_price())
+        # })
+    
+    # return redirect('cart:cart_detail')
+    try:
+        cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+        cart_item.delete()
+        
         cart = get_cart(request)
+        
         return JsonResponse({
             'status': 'success',
-            'message': "Item removed from cart.",
-            'cart_total': cart.get_total_items(),
+            'message': "商品已从购物车中移除",
+            'cart_total': cart.items.count(),
             'cart_price': float(cart.get_total_price())
         })
-    
-    return redirect('cart:cart_detail')
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f"删除失败: {str(e)}"
+        }, status=500)
 
 @login_required
 def cart_update(request, item_id):

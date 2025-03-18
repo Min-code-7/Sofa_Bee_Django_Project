@@ -206,32 +206,71 @@
         
         // Remove item buttons
         document.querySelectorAll('.remove-item').forEach(button => {
-            button.addEventListener('click', function() {
-                const itemId = this.getAttribute('data-item');
-                if (confirm('Are you sure you want to remove this item?')) {
-                    fetch(`/cart/remove/${itemId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            // Remove the item row
-                            this.closest('tr').remove();
-                            document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
-                            
-                            // If no items left, refresh the page
-                            if (data.cart_total === 0) {
-                                window.location.reload();
-                            }
-                        }
-                    });
-                }
-            });
-        });
+			button.addEventListener('click', function() {
+				const itemId = this.getAttribute('data-item');
+				const row = this.closest('tr');
+        
+				if (confirm('Are you sure you want to remove this item?')) {
+					// loading status
+					button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+					button.disabled = true;
+            
+					// CSRF
+					const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+					fetch(`/cart/remove/${itemId}/`, {
+						method: 'POST',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest',
+							'X-CSRFToken': csrftoken,
+							'Content-Type': 'application/x-www-form-urlencoded'
+						}
+					})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error(`HTTP error! Status: ${response.status}`);
+						}
+						return response.json();
+					})
+					.then(data => {
+						if (data.status === 'success') {
+							// Remove the item row, renew the total price
+							row.remove();
+							document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                    
+							// If no items left, refresh the page
+							if (data.cart_total === 0) {
+								window.location.reload();
+							}
+                    
+							// success message
+							const alertDiv = document.createElement('div');
+							alertDiv.className = 'alert alert-success alert-dismissible fade show';
+							alertDiv.innerHTML = `
+								${data.message}
+								<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+							`;
+							document.querySelector('.container').prepend(alertDiv);
+                    
+							// close tips
+							setTimeout(() => {
+								alertDiv.remove();
+							}, 5000);
+						} else {
+							alert(data.message || 'fail to delete!');
+							button.innerHTML = 'delete';
+							button.disabled = false;
+						}
+					})
+					.catch(error => {
+						console.error('delete error:', error);
+						alert('delete error, wait for a second');
+						button.innerHTML = 'delete';
+						button.disabled = false;
+					});
+				}
+			});
+		});
         
         // Search functionality
         document.getElementById('search-btn')?.addEventListener('click', function() {
