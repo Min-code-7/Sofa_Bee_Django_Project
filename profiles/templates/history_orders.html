@@ -60,7 +60,7 @@
                     <thead>
                     <tr>
                         <th scope="col" style="width: 30%" class="no-border-right no-border-left">
-                            <span>订单号：</span>{{ order.order_id }}</th>
+                            <span>order number：</span>{{ order.order_id }}</th>
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
@@ -96,9 +96,9 @@
                                 <td class="td_items" rowspan="{{ order_items|length }}">
                                     <nav aria-label="breadcrumb">
                                         <ol class="breadcrumb">
-                                            <li class="breadcrumb-item"><a href="#">评价</a></li>
+                                            <li class="breadcrumb-item"><a href="#">review</a></li>
                                             <li class="breadcrumb-item"><a
-                                                    href="{% url 'order_detail' id=id %}">详情</a></li>
+                                                    href="{% url 'order_detail' id=id %}">details</a></li>
                                         </ol>
                                     </nav>
                                 </td>

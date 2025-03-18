@@ -105,8 +105,9 @@
                                             Address {{ forloop.counter }}: {{ address.detail_address }} {{ address.district }} {{ address.city }} {{ address.province }}</p>
                                         <a href="{% url 'modify_address' address.id %}"
                                            class="btn btn-sm btn-outline-primary">Modify</a>
-                                        <a href="/delete_address/{{ address.id }}"
-                                           class="btn btn-sm btn-outline-danger">Delete</a>
+                                        <a href="{% url 'delete_address' address.id %}"
+                                           class="btn btn-sm btn-outline-primary">Delete</a>
+
                                     </div>
                                 </li>
 

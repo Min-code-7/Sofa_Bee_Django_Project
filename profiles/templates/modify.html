@@ -55,7 +55,7 @@
 <body>
 
 <div style="display: flex; min-height: 100vh;">
-    <!-- 左边灰色背景 -->
+
     <div style="flex: 1; background-color: #f0f0f0;">
 
         <div class="container" style="flex: 3; background-color: white; height: 100%;padding-top: 150px">
@@ -80,7 +80,6 @@
             <div style="float:left;width:700px">
                 <div class="container mt-5">
 
-                    <!-- 用户信息 -->
                     <div class="card-body">
 
 
@@ -113,24 +112,24 @@
                                     <div class="input-group">
                                         <input type="email" class="form-control" id="email" name="email"
                                                value="{{ user.email }}">
-                                        <button class="btn btn-outline-secondary" type="button" id="emailButton">change
-                                            email
+                                        <button class="btn btn-outline-secondary" type="button" id="emailButton">Change
+                                            Email
                                         </button>
                                     </div>
 
-                                    <div class="mb-3" id="verifyNumber">
-                                        <label>验证码</label>
-                                        <input type="text" class="form-control" placeholder="验证码"
+                                    <div class="mb-3" id="verifyNumber" style="padding-top: 20px">
+                                        <label>Verification Code</label>
+                                        <input type="text" class="form-control" placeholder="Verification Code"
                                                aria-label="Recipient's username"
                                                aria-describedby="button-addon2" id="captcha" name="captcha">
-                                        <button class="btn btn-secondary" type="button" id="captcha-btn">获取验证码
+                                        <button class="btn btn-secondary" type="button" id="captcha-btn">Get Verification Code
                                         </button>
-                                        <button class="btn btn-secondary" type="button" id="compare-btn">验证</button>
+                                        <button class="btn btn-secondary" type="button" id="compare-btn">Verify</button>
                                     </div>
-                                    <div class="mb-3" id="new-email-container" style="display: none;">
-                                        <label for="new-email">新邮箱</label>
+                                    <div class="mb-3" id="new-email-container" style="display: none;padding-top: 20px">
+                                        <label for="new-email">new email</label>
                                         <input type="email" class="form-control" id="new-email" name="new-email"
-                                               placeholder="请输入新邮箱">
+                                               placeholder="input new email">
                                     </div>
                                 </div>
                                 <div style="text-align: center">
@@ -151,7 +150,7 @@
 <script>
     const emailButton = document.getElementById('emailButton');
     const verifyinput = document.getElementById('verifyNumber');
-    verifyinput.style.display = 'none'; // 初始隐藏验证码输入框
+    verifyinput.style.display = 'none';
     emailButton.addEventListener('click', function () {
         if (verifyinput.style.display === 'none') {
             verifyinput.style.display = 'block';

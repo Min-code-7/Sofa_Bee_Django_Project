@@ -20,7 +20,7 @@ $(function() {
             let countdown = 60;
             let timer = setInterval(function () {
                 if (countdown <= 0) {
-                    $this.text('获取验证码');
+                    $this.text('get verification code');
                     //$this.on('click');
                     clearInterval(timer);
                     bindCaptchaBtnClick();

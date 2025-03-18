@@ -10,3 +10,5 @@ class Consumer(models.Model):
     status=models.CharField(max_length=45)
     password=models.CharField(max_length=45)
     images=models.FileField(upload_to='images/', null=True, blank=True)
+
+
