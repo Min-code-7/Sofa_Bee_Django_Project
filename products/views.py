@@ -8,6 +8,7 @@ from django.templatetags.static import static
 from reviews.forms import ReviewForm
 from .forms import ProductForm
 from .models import Product, Category
+from reviews.models import Review
 
 # just test
 PRODUCTS = [
@@ -60,45 +61,44 @@ def product_list(request):
 def product_list(request):
 
 
-
-
     # get keyword
     query = request.GET.get('q', '').strip().lower()
     # print("keywords: ", query)
 
     # get category
-    category = request.GET.get('category', '')
+    category = request.GET.get('category', '').strip().lower()
 
-    products = PRODUCTS
+    # products = PRODUCTS
+    products = list(Product.objects.all().values("id", "name", "description", "category", "price", "image"))
 
     if query:
-        products = [p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()]
+        products = [p for p in products if query in p["name"].lower() or query in p["description"].lower()]
 
     if category:
-        products = [p for p in PRODUCTS if p["category"].lower() == category.lower()]
+        products = [p for p in products if p["category"].lower() == category.lower()]
 
-    categories = set(p["category"] for p in PRODUCTS)
+    categories = set(p["category"] for p in products)
 
     return render(request, "products/product_list.html", {"products": products, "query": query, "categories": categories, "selected_category": category})
 
 
 def product_detail(request, product_id):
 
-    """
+
 
     # use sqlite
     product = get_object_or_404(Product, id=product_id)
-    return render(request, 'products/product_detail.html', {'product': product})
-    """
+
     # use test data
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    # product = next((p for p in PRODUCTS if p["id"] == product_id), None)
 
 
     if product is None:
         return render(request, "404.html", {"message": "No Product matches the given query."}, status=404)
 
     # get review
-    reviews = REVIEWS.get(product_id, [])
+    # reviews = REVIEWS.get(product_id, [])
+    reviews = list(Review.objects.filter(product=product).values("user", "rating", "comment", "created_at"))
 
     # handle review filter
     for review in reviews:
@@ -119,9 +119,11 @@ def product_detail(request, product_id):
     return render(request, "products/product_detail.html", {"product": product, "reviews": reviews, "form": form})
 
 def product_search(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip().lower()
     # products = Product.objects.filter(name__icontains=query)
     category = request.GET.get('category', '').strip().lower()
+
+    products = list(Product.objects.all().values("id", "name", "description", "category", "price", "image"))
 
     """
     data = {
@@ -140,16 +142,29 @@ def product_search(request):
     """
     if not category:
         filtered_products = [
-            p for p in PRODUCTS if query in p["name"].lower() or query in p["description"].lower()
+            p for p in products if query in p["name"].lower() or query in p["description"].lower()
         ]
     else:
         filtered_products = [
-            p for p in PRODUCTS
+            p for p in products
             if (query in p["name"].lower() or query in p["description"].lower()) and (not category or p["category"].lower() == category)
         ]
 
-    # return JsonResponse(data)
-    return JsonResponse({"products": filtered_products})
+    data = {
+        "products": [
+            {
+                "id": p["id"],
+                "name": p["name"],
+                "description": p["description"],
+                "price": float(p["price"]),
+                "image": static(p["image"]) if p["image"] else None
+            }
+            for p in filtered_products
+        ]
+    }
+
+    return JsonResponse(data)
+    # return JsonResponse({"products": filtered_products})
 
 # @login_required
 def add_product(request):
