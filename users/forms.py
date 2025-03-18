@@ -7,6 +7,7 @@ class UserRegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput, label="confirm password")
     verification_code = forms.CharField(label="verification code", required=True)
+    phone_number = forms.CharField(max_length=15, label="Phone number", required=True)
     user_type = forms.ChoiceField(
         choices=[('regular', 'normal user'), ('merchant', 'merchant user')],
         initial='regular',
@@ -15,7 +16,7 @@ class UserRegisterForm(forms.ModelForm):
    
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'confirm_password', 'verification_code', 'user_type']
+        fields = ['username', 'email', 'phone_number', 'password', 'confirm_password', 'verification_code', 'user_type']
 
     def clean(self):
         cleaned_data = super().clean()

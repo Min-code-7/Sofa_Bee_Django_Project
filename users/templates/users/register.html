@@ -30,6 +30,12 @@
                     </div>
                 </div>
                 
+				<div class="mb-3">
+                    <label for="id_phone_number" class="form-label">Phone number</label>
+                    {{ form.phone_number.errors }}
+                    <input type="text" name="phone_number" id="id_phone_number" class="form-control" required>
+                </div>
+				
                 <div class="mb-3">
                     <label for="id_verification_code" class="form-label">Code</label>
                     {{ form.verification_code.errors }}
