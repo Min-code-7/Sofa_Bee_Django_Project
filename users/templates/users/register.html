@@ -25,9 +25,11 @@
                     <label for="id_email" class="form-label">Email</label>
                     {{ form.email.errors }}
                     <input type="email" name="email" id="id_email" class="form-control" required>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button type="button" id="send-code" class="btn btn-sm btn-outline-secondary">Send vertification code</button>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span id="countdown-timer" class="text-danger" style="display: none;"></span>
+                        <button type="button" id="send-code" class="btn btn-sm btn-outline-secondary">Send verification code</button>
                     </div>
+                    <small id="code-expiry" class="text-muted" style="display: none;">Verification code will expire in <span id="expiry-timer">5:00</span></small>
                 </div>
                 
 				<div class="mb-3">
@@ -75,6 +77,66 @@
 </div>
 
 <script>
+// Variables to track timers
+let cooldownTimer = null;
+let expiryTimer = null;
+let cooldownSeconds = 0;
+let expirySeconds = 0;
+
+// Format seconds to MM:SS
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+}
+
+// Start cooldown timer
+function startCooldownTimer(seconds) {
+    const sendCodeBtn = document.getElementById("send-code");
+    const countdownTimer = document.getElementById("countdown-timer");
+    
+    // Disable button and show countdown
+    sendCodeBtn.disabled = true;
+    countdownTimer.style.display = "block";
+    cooldownSeconds = seconds;
+    
+    // Update countdown every second
+    cooldownTimer = setInterval(function() {
+        cooldownSeconds--;
+        countdownTimer.textContent = `Resend in ${cooldownSeconds}s`;
+        
+        if (cooldownSeconds <= 0) {
+            // Enable button and hide countdown when timer ends
+            clearInterval(cooldownTimer);
+            sendCodeBtn.disabled = false;
+            countdownTimer.style.display = "none";
+        }
+    }, 1000);
+}
+
+// Start expiry timer
+function startExpiryTimer() {
+    const codeExpiry = document.getElementById("code-expiry");
+    const expiryTimerElement = document.getElementById("expiry-timer");
+    
+    // Show expiry message
+    codeExpiry.style.display = "block";
+    expirySeconds = 5 * 60; // 5 minutes in seconds
+    
+    // Update expiry timer every second
+    expiryTimer = setInterval(function() {
+        expirySeconds--;
+        expiryTimerElement.textContent = formatTime(expirySeconds);
+        
+        if (expirySeconds <= 0) {
+            // Hide expiry message when timer ends
+            clearInterval(expiryTimer);
+            codeExpiry.style.display = "none";
+        }
+    }, 1000);
+}
+
+// Send verification code
 document.getElementById("send-code").addEventListener("click", function() {
     var email = document.querySelector("input[name='email']").value;
     if (!email) {
@@ -91,8 +153,28 @@ document.getElementById("send-code").addEventListener("click", function() {
         body: "email=" + encodeURIComponent(email),
     })
     .then(response => response.json())
-    .then(data => alert(data.message))
-    .catch(error => console.error("Error:", error));
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            if (data.seconds_left) {
+                startCooldownTimer(data.seconds_left);
+            }
+        } else {
+            alert(data.message);
+            
+            // Clear any existing timers
+            if (cooldownTimer) clearInterval(cooldownTimer);
+            if (expiryTimer) clearInterval(expiryTimer);
+            
+            // Start new timers
+            startCooldownTimer(60); // 1 minute cooldown
+            startExpiryTimer(); // 5 minutes expiry
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred while sending the verification code. Please try again.");
+    });
 });
 
 // When the user clicks "Register as merchant", the merchant type is automatically selected
