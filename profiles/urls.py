@@ -7,6 +7,6 @@ urlpatterns = [
     path('modify/<int:id>/captcha/', send_email_captcha, name='email_captcha'),
 
     path('history_order/<int:id>/', history_order, name='history_order'),
-    path('order_detail/<int:id>/', order_detail, name='order_detail'),
+    path('order_detail/<int:id>/', order_detail, name='history_order_detail'),
 
 ]
