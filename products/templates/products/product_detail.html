@@ -118,7 +118,7 @@ function filterReviews() {
     console.log("Sending rating:", rating, "Type", typeof rating);
 
     $.ajax({
-        url: "{% url 'filter_reviews' product.id %}", 
+        url: "{% url 'products:filter_reviews' product.id %}", 
         data: {
             rating: rating ? parseInt(rating, 10) : null,
             keyword: $("#filter-keyword").val(),
