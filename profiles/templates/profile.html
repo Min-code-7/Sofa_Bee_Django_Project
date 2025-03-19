@@ -41,10 +41,10 @@
                         <a class="list-group-item list-group-item-action a" aria-current="true" href="{% url 'profiles' id=user.id %}">
                            <h3>Profile</h3>
                         </a>
-                        <a href="{% url 'cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
-                        <a href="{% url 'list_orders' %}" class="list-group-item list-group-item-action a">my orders</a>
-                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' id=user.id %}">history orders</a>
-                        <a class="list-group-item list-group-item-action a" href="{% url 'modify_profile' id=user.id %}">setting</a>
+                        <a href="{% url 'cart:cart_detail' %}" class="list-group-item list-group-item-action a">Cart</a>
+                        <a href="{% url 'history_order' %}" class="list-group-item list-group-item-action a">My Orders</a>
+                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' %}">History Orders</a>
+                        <a class="list-group-item list-group-item-action a" href="{% url 'modify_profile' %}">Settings</a>
 
                     </div>
                 </div>
@@ -58,18 +58,18 @@
                     </div>
                     <div class="card-body">
                         <div style="text-align: center;">
-                            <img src="{{ user.images }}"
+                            <img src="https://via.placeholder.com/100" alt="{{ user.username }}"
                                  style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover;">
+                            <p class="text-muted small mt-2">This is a placeholder image. Profile picture upload functionality will be added soon.</p>
                         </div>
                         <div class="mb-3">
-                            <label for="name" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="name" value="{{ user.name }}" readonly>
+                            <label for="name" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="name" value="{{ user.username }}" readonly>
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Phone Number</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="phone" value="{{ user.phone }}">
-
+                                <input type="text" class="form-control" id="phone" value="{{ user.userprofile.phone_number|default:'' }}">
                             </div>
                         </div>
                         <div class="mb-3">
@@ -81,10 +81,9 @@
                         </div>
                     </div>
                     <div style="text-align: center;margin-bottom: 20px">
-                        <a href="{% url 'modify_profile' id=user.id %}">
-                            <button type="button" class="btn btn-success">modify information</button>
+                        <a href="{% url 'modify_profile' %}">
+                            <button type="button" class="btn btn-success">Modify Information</button>
                         </a>
-
                     </div>
 
                 </div>
@@ -103,16 +102,13 @@
                                     <div class="card-body">
                                         <p class="mb-1">
                                             Address {{ forloop.counter }}: {{ address.detail_address }} {{ address.district }} {{ address.city }} {{ address.province }}</p>
-                                        <a href="{% url 'modify_address' address.id %}"
+                                        <a href="{% url 'modify_address' address_id=address.id %}"
                                            class="btn btn-sm btn-outline-primary">Modify</a>
-                                        <a href="{% url 'delete_address' address.id %}"
+                                        <a href="{% url 'delete_address' address_id=address.id %}"
                                            class="btn btn-sm btn-outline-primary">Delete</a>
-
                                     </div>
                                 </li>
-
                             {% endfor %}
-
                         </ul>
                     </div>
                 </div>

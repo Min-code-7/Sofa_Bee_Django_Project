@@ -16,8 +16,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-
-from profiles import views
 from .views import home
 from django.conf import settings
 from django.conf.urls.static import static
@@ -25,17 +23,12 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('products/', include('products.urls', namespace='products')),
-
-    #path('accounts/', include('django.contrib.auth.urls')),
     path('users/', include('users.urls')),
     path('cart/', include('cart.urls', namespace='cart')),
-
     path('', home, name='home'),  
     path('orders/', include('orders.urls')),
     path('profiles/', include('profiles.urls')),  # 引入 profiles app 的 urls.py
     path('addresses/', include('addresses.urls')),  # 引入 addresses app 的 urls.py
-    path('verify_captcha/', views.compare_code, name='verify'),
-
 ]
 
 if settings.DEBUG:

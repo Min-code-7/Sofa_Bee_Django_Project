@@ -7,7 +7,7 @@ from users.models import UserProfile
 # Create your views here.
 def modify_address(request, address_id):
     address = Address.objects.get(id=address_id)
-    consumer_id = address.user.id
+    user_id = address.user.id
     if request.method == 'POST':
         name = request.POST.get('name')
         phone = request.POST.get('phone')
@@ -16,18 +16,20 @@ def modify_address(request, address_id):
         district_1 = request.POST.get('district')
         detail = request.POST.get('detail')
 
-        Address.objects.update(receiver_name=name,
-                                         receiver_phone=phone,
-                                         province=province_1,
-                                         city=city_1,
-                                         district=district_1,
-                                         detail_address=detail)
+        address.receiver_name = name
+        address.receiver_phone = phone
+        address.province = province_1
+        address.city = city_1
+        address.district = district_1
+        address.detail_address = detail
+        address.save()
         return redirect('modify_address', address_id=address_id)
-    return render(request, 'modify_address.html', {'address': address, 'consumer_id': consumer_id})
+    return render(request, 'modify_address.html', {'address': address, 'user_id': user_id})
 
 
-def add_address(request):
-    id = request.user.id
+def add_address(request, id=None):
+    if id is None:
+        id = request.user.id
     if request.method == 'POST':
         userprofile = UserProfile.objects.get(user_id=id)
         name = request.POST.get('name')
@@ -43,7 +45,7 @@ def add_address(request):
                                          city=city_1,
                                          district=district_1,
                                          detail_address=detail,
-                                         consumer=userprofile,
+                                         user=request.user,
                                          is_default=True)
 
         return redirect("add_address", id=id)
@@ -55,5 +57,5 @@ def delete_address(request, address_id):
     address = Address.objects.get(id=address_id)
     address.is_default = False
     address.save()
-    consumer_id = address.consumer.user.id
-    return redirect("profiles", id=consumer_id)
+    user_id = address.user.id
+    return redirect("profiles", id=user_id)

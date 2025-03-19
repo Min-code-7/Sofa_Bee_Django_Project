@@ -60,8 +60,8 @@
                                     <li><a class="dropdown-item" href="#">Manage Products</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
-                                <li><a class="dropdown-item" href="#">My Profile</a></li>
-                                <li><a class="dropdown-item" href="#">My Orders</a></li>
+                                <li><a class="dropdown-item" href="{% url 'profiles' id=user.id %}">My Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'history_order' %}">My Orders</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'users:logout' %}">Log Out</a></li>
                             </ul>

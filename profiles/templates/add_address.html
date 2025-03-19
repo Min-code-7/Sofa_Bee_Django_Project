@@ -38,12 +38,12 @@
                            href="{% url 'profiles' id=user.id %}">
                             <h3>Profile</h3>
                         </a>
-                        <a href="{% url 'cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
+                        <a href="{% url 'cart:cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
                         <a href="{% url 'list_orders' %}" class="list-group-item list-group-item-action a">my orders</a>
-                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' id=user.id %}">history
+                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' %}">history
                             orders</a>
                         <a class="list-group-item list-group-item-action a"
-                           href="{% url 'modify_profile' id=user.id %}">setting</a>
+                           href="{% url 'modify_profile' %}">setting</a>
 
                     </div>
                 </div>

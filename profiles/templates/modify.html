@@ -58,12 +58,12 @@
                            href="{% url 'profiles' id=user.id %}">
                             <h3>Profile</h3>
                         </a>
-                        <a href="{% url 'cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
+                        <a href="{% url 'cart:cart_detail' %}" class="list-group-item list-group-item-action a">cart</a>
                         <a href="{% url 'list_orders' %}" class="list-group-item list-group-item-action a">my orders</a>
-                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' id=user.id %}">history
+                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' %}">history
                             orders</a>
                         <a class="list-group-item list-group-item-action a"
-                           href="{% url 'modify_profile' id=user.id %}">setting</a>
+                           href="{% url 'modify_profile' %}">setting</a>
 
                     </div>
                 </div>
@@ -77,23 +77,43 @@
                         <div class="profile-card">
 
                             <div style="text-align: center;">
-                                <img src="{{ user.images }}" id="image"
+                                <img src="https://via.placeholder.com/100" alt="{{ user.username }}" id="image"
                                      style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover;">
+                                <p class="text-muted small mt-2">This is a placeholder image. Profile picture upload functionality will be added soon.</p>
                             </div>
                             <form method="post">
                                 {% csrf_token %}
 
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
+                                    <label for="name" class="form-label">Username</label>
                                     <input type="text" class="form-control" id="name" name="name"
-                                           value="{{ user.name }}">
+                                           value="{{ user.username }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone"
+                                           value="{{ user.userprofile.phone_number|default:'' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="password" name="password"
-                                               value="{{ user.password }}">
-                                        <button class="btn btn-outline-secondary" type="button">Change Password</button>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Leave blank to keep current password">
+                                        <button class="btn btn-outline-secondary" type="button" id="passwordButton">Change Password</button>
+                                    </div>
+                                    <div class="mb-3" id="passwordFields" style="display: none; padding-top: 20px">
+                                        <div class="mb-2">
+                                            <label for="current-password">Current Password</label>
+                                            <input type="password" class="form-control" id="current-password" name="current-password" placeholder="Enter current password">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="new-password">New Password</label>
+                                            <input type="password" class="form-control" id="new-password" name="new-password" placeholder="Enter new password">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="confirm-password">Confirm New Password</label>
+                                            <input type="password" class="form-control" id="confirm-password" name="confirm-password" placeholder="Confirm new password">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -148,6 +168,17 @@
             verifyinput.style.display = 'block';
         } else {
             verifyinput.style.display = 'none';
+        }
+    });
+    
+    const passwordButton = document.getElementById('passwordButton');
+    const passwordFields = document.getElementById('passwordFields');
+    passwordFields.style.display = 'none';
+    passwordButton.addEventListener('click', function () {
+        if (passwordFields.style.display === 'none') {
+            passwordFields.style.display = 'block';
+        } else {
+            passwordFields.style.display = 'none';
         }
     });
 </script>
