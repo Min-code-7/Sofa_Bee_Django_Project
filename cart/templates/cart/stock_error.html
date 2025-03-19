@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Out of Stock{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">Stock Availability Issue</h4>
+        </div>
+        <div class="card-body">
+            <p>Some items in your cart are no longer available in the requested quantity:</p>
+            
+            <div class="table-responsive mt-3">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Available Stock</th>
+                            <th>Requested Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in out_of_stock_items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.available }}</td>
+                            <td>{{ item.requested }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'cart:cart_detail' %}" class="btn btn-primary">Return to Cart</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

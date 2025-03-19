@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 import uuid
+from django.contrib import messages
 
 from .models import Cart, CartItem
 from products.models import Product
@@ -48,29 +49,34 @@ def cart_detail(request):
         return redirect('users:login')
     
     # Get cart items
-    cart_items = cart.items.all()
+    cart_items = cart.items.select_related('product', 'product__seller', 'product__category').all()
     
+    """ 
     # Handle search query
     query = request.GET.get('q', '')
     if query:
         cart_items = cart_items.filter(
             Q(product_name__icontains=query)  # Use product_name instead of product__name
-        )
+    
+        ) 
+
+    """
     
     # Group by category (simulating grouping by shop)
     # Since we don't have real shop information, we can assume the first digit of each product ID is the shop ID
     shops_items = {}
     for item in cart_items:
-        shop_id = f"Shop {item.product_id_test % 3 + 1}"  # Note the product ID!
-        if shop_id not in shops_items:
-            shops_items[shop_id] = []
-        shops_items[shop_id].append(item)
+        seller = item.product.seller
+        shop_name = f"{seller.username}'s Shop" if seller else "Shop"
+        
+        if shop_name not in shops_items:
+            shops_items[shop_name] = []
+        shops_items[shop_name].append(item)
     
     context = {
         'cart': cart,
         'shops_items': shops_items,
-        'total_price': sum(item.get_price() for item in cart_items),
-        'search_query': query,  # Pass the search query to the template
+        'total_price': cart.get_total_price(),
     }
     return render(request, 'cart/cart.html', context)
     
@@ -78,29 +84,8 @@ def cart_detail(request):
 @login_required
 @require_POST
 def cart_add(request, product_id):
-    """Add a product to the cart.
-    cart = get_cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    
-    cart_item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product,
-        defaults={'quantity': 1}
-    )
-    
-    if not created:
-        cart_item.quantity += 1
-        cart_item.save()
-    
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({
-            'status': 'success',
-            'message': f"{product.name} has been added to your cart.",
-            'cart_total': cart.get_total_items()
-        })
-    
-    return redirect('products:product_list')
-    """
+    """ 
+    Add a product to the cart.
     cart = get_cart(request)
     if not cart:
         return redirect('users:login')
@@ -145,25 +130,67 @@ def cart_add(request, product_id):
         "status": "success",
         "message": f"{product['name']} has been added to your cart.",
         "cart_total": cart.items.count()
+    }) 
+    """
+    cart = get_cart(request)
+    if not cart:
+        return redirect('users:login')
+    
+    # Get product from database
+    product = get_object_or_404(Product, id=product_id)
+    
+    # Check stock
+    if product.stock <= 0:
+        return JsonResponse({
+            "status": "error",
+            "message": "Sorry, this product is out of stock."
+        })
+    
+    try:
+        # Find or create cart item
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            defaults={'quantity': 1}
+        )
+        
+        if not created:
+            # If exists, increase quantity
+            if cart_item.quantity < product.stock:
+                cart_item.quantity += 1
+                cart_item.save()
+            else:
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Sorry, only {product.stock} items available in stock."
+                })
+    
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+    return JsonResponse({
+        "status": "success",
+        "message": f"{product.name} has been added to your cart.",
+        "cart_total": cart.items.count()
     })
 
 @login_required
 def cart_remove(request, item_id):
     """Remove an item from the cart."""
-    # cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-    # cart_item.delete()
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    cart_item.delete()
     
-    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # cart = get_cart(request)
-        # return JsonResponse({
-            # 'status': 'success',
-            # 'message': "Item removed from cart.",
-            # 'cart_total': cart.get_total_items(),
-            # 'cart_price': float(cart.get_total_price())
-        # })
+    
+    cart = get_cart(request)
+    return JsonResponse({
+        'status': 'success',
+        'message': "Item removed from cart.",
+        'cart_total': cart.get_total_items(),
+        'cart_price': float(cart.get_total_price())
+    })
     
     # return redirect('cart:cart_detail')
-    try:
+    """ try:
         cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
         cart_item.delete()
         
@@ -179,7 +206,7 @@ def cart_remove(request, item_id):
         return JsonResponse({
             'status': 'error',
             'message': f"Delete failed: {str(e)}"
-        }, status=500)
+        }, status=500) """
 
 @login_required
 def cart_update(request, item_id):
@@ -187,6 +214,13 @@ def cart_update(request, item_id):
     if request.method == 'POST':
         cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
         quantity = int(request.POST.get('quantity', 1))
+
+        # Check stock
+        if quantity > cart_item.product.stock:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Only {cart_item.product.stock} items available in stock.'
+            })
         
         if quantity < 1:
             cart_item.delete()
@@ -194,14 +228,14 @@ def cart_update(request, item_id):
             cart_item.quantity = quantity
             cart_item.save()
         
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            cart = get_cart(request)
-            return JsonResponse({
-                'status': 'success',
-                'item_price': float(cart_item.get_price()),
-                'cart_total': cart.get_total_items(),
-                'cart_price': float(cart.get_total_price())
-            })
+        
+        cart = get_cart(request)
+        return JsonResponse({
+            'status': 'success',
+            'item_price': float(cart_item.get_price()),
+            'cart_total': cart.get_total_items(),
+            'cart_price': float(cart.get_total_price())
+        })
     
     return redirect('cart:cart_detail')
 
@@ -239,21 +273,22 @@ def cart_search(request):
     
     if query:
         items = cart.items.filter(
-            Q(product_name__icontains=query)  # Use product_name instead of product__name
-        )
+            Q(product__name__icontains=query) | 
+            Q(product__description__icontains=query)
+        ).select_related('product')
     else:
-        items = cart.items.all()
+        items = cart.items.all().select_related('product')
     
     items_data = []
     for item in items:
         items_data.append({
             'id': item.id,
-            'product_id': item.product_id_test,  # Use correct field
-            'name': item.product_name,
-            'price': float(item.product_price),
+            'product_id': item.product.id,
+            'name': item.product.name,
+            'price': float(item.product.price),
             'quantity': item.quantity,
             'total_price': float(item.get_price()),
-            'image': item.product_image,
+            'image': item.product.image.url if item.product.image else None,
         })
     
     return JsonResponse({'items': items_data})
@@ -278,9 +313,25 @@ def checkout(request):
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
     
+    # Check stock
+    out_of_stock_items = []
+    for item in cart.items.all():
+        if item.quantity > item.product.stock:
+            out_of_stock_items.append({
+                'name': item.product.name,
+                'available': item.product.stock,
+                'requested': item.quantity
+            })
+    
+    if out_of_stock_items:
+        context = {
+            'out_of_stock_items': out_of_stock_items
+        }
+        return render(request, 'cart/stock_error.html', context)
+    
     context = {
         'cart': cart,
-        'cart_items': cart.items.all(),  # Remove select_related('product')
+        'cart_items': cart.items.select_related('product').all(),
         'total_price': cart.get_total_price(),
     }
     return render(request, 'cart/checkout.html', context)
@@ -324,6 +375,12 @@ def payment(request):
     if not shipping_info:
         return redirect('cart:shipping')
     
+     # Check stock again
+    for item in cart.items.all():
+        if item.quantity > item.product.stock:
+            messages.error(request, f"Sorry, '{item.product.name}' now only has {item.product.stock} items in stock.")
+            return redirect('cart:cart_detail')
+        
     # Generate order number for QR code
     order_number = str(uuid.uuid4()).replace("-", "")[:12]
     request.session['pending_order_number'] = order_number
@@ -350,6 +407,15 @@ def payment_success(request):
     if not shipping_info or not order_number:
         return redirect('cart:checkout')
     
+    # Final stock check and reduce inventory
+    for item in cart.items.all():
+        if item.quantity > item.product.stock:
+            messages.error(request, f"Sorry, '{item.product.name}' is now out of stock.")
+            return redirect('cart:cart_detail')
+        
+        # Reduce stock
+        item.product.reduce_stock(item.quantity)
+
     # Create the order
     order = Order.objects.create(
         user=request.user,
@@ -363,11 +429,11 @@ def payment_success(request):
     for cart_item in cart.items.all():
         OrderItem.objects.create(
             order=order,
-            #product_name=cart_item.product.name,
-            product_name=cart_item.product_name,  # 使用product_name而不是product.name
+            product_name=cart_item.product.name,
+            #product_name=cart_item.product_name,  
             quantity=cart_item.quantity,
-            #price=cart_item.product.price,
-            price = cart_item.product_price,  # 使用product_price而不是product.price
+            price=cart_item.product.price,
+            #price = cart_item.product_price,  
         )
     
     # Clear the cart

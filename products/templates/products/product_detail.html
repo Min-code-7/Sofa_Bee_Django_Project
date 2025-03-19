@@ -1,30 +1,219 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm p-4">
-                <div class="row">
+<div class="container mt-4">
+    <!-- product details -->
+    <div class="row">
+        <div class="col-md-5">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+            {% else %}
+            <div class="text-center py-5 bg-light">No Image Available</div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <h2>{{ product.name }}</h2>
+            <p>{{ product.description }}</p>
+            <p class="text-primary"><strong>Price: ${{ product.price }}</strong></p>
+            <p><strong>Category:</strong> {{ product.category.name }}</p>
+            <p><strong>Stock:</strong> {{ product.stock }} units available</p>
+            <button class="btn btn-success" onclick="addToCart({{ product.id }})">Add to Cart</button>
+        </div>
+    </div>
 
-                    <div class="col-md-5 text-center">
-                        <img src="{{ product.image }}" alt="{{ product.name }}" class="img-fluid rounded shadow-sm">
-                    </div>
+    <hr>
 
+    <!-- review filtering bar -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h4>Filter Reviews</h4>
+            <div class="d-flex gap-3">
+                <!-- filter review -->
+                <select id="filter-rating" class="form-select">
+                    <option value="">All Ratings</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 stars)</option>
+                    <option value="3">⭐⭐⭐ (3 stars)</option>
+                    <option value="2">⭐⭐ (2 stars)</option>
+                    <option value="1">⭐ (1 star)</option>
+                </select>
 
-                    <div class="col-md-7">
-                        <h2 class="mb-3"><strong>{{ product.name }}</strong></h2>
-                        <p class="text-muted">{{ product.description }}</p>
-                        <h4 class="text-primary"><strong>Price: ${{ product.price }}</strong></h4>
+                <!-- keywords -->
+                <input type="text" id="filter-keyword" placeholder="Search reviews...">
 
-
-                        <a href="{% url 'products:product_list' %}" class="btn btn-secondary mt-3">Return to the products list</a>
-                    </div>
+                <!-- with images -->
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="filter-images">
+                    <label for="filter-images" class="form-check-label">Only with Images</label>
                 </div>
+
+                <button class="btn btn-primary" onclick="filterReviews()">Apply Filters</button>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
 
+    <hr>
+
+    <!-- reviews list -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h4>Customer Reviews</h4>
+            <div id="reviews-list">
+                {% for review in reviews %}
+                    <div class="review-card p-3 border rounded mb-3">
+                        <strong>{{ review.user.username }}</strong> rated: 
+                        <span class="rating-stars">
+                            {% for _ in review.get_stars %}
+                                ⭐
+                            {% endfor %}
+                        </span>
+                        <p>{{ review.comment }}</p>
+                        <small>{{ review.created_at }}</small>
+                        {% if review.image %}
+                            <div class="mt-2">
+                                <img src="{{ review.image.url }}" class="img-thumbnail" width="100">
+                            </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p>No reviews available.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- submit reviews with user login -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            {% if user.is_authenticated %}
+                {% if user.userprofile.user_type == 'regular' %}
+                    <h4>Write a Review</h4>
+                    <form id="review-form" method="POST" action="/products/reviews/add/{{ product.id }}/" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Rating:</label>
+                            <select id="rating" class="form-select" name="rating" required>
+                                <option value="5">⭐⭐⭐⭐⭐</option>
+                                <option value="4">⭐⭐⭐⭐</option>
+                                <option value="3">⭐⭐⭐</option>
+                                <option value="2">⭐⭐</option>
+                                <option value="1">⭐</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comment:</label>
+                            <textarea id="comment" class="form-control" name="comment" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image (optional):</label>
+                            <input type="file" id="image" class="form-control" name="image">
+                        </div>
+                        <button type="submit" class="btn btn-success">Submit Review</button>
+                    </form>
+                {% elif user.userprofile.user_type == 'merchant' %}
+                    <div class="alert alert-info">
+                        <p>As a merchant, you cannot submit reviews. This feature is only available to regular users.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p><a href="{% url 'users:login' %}">Log in</a> to write a review</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+    
+<!-- AJAX implement filter-->    
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+function filterReviews() {
+    let rating = $("#filter-rating").val();
+    let keyword = $("#filter-keyword").val();
+    let onlyImages = $("#filter-images").prop("checked");
+    
+    console.log("Sending rating:", rating, "Type", typeof rating);
+
+    $.ajax({
+        
+        url: "/products/reviews/filter/{{ product.id }}/", 
+        data: {
+            rating: rating ? parseInt(rating, 10) : null,
+            keyword: keyword,
+            images: onlyImages
+        },
+        
+        dataType: "json",
+        success: function(response) {
+            console.log("Filtered Reviews:", response.reviews);
+            
+            $("#reviews-list").html("");
+            if (response.reviews.length === 0) {
+                $("#reviews-list").html("<p>No matching reviews.</p>");
+            } else {
+                $.each(response.reviews, function(index, review) {
+                    let stars = "⭐".repeat(parseInt(review.rating));
+                    let reviewHtml = `
+                        <div class="review-card p-3 border rounded mb-3">
+                            <strong>${review.user}</strong> rated: ${stars}
+                            <p>${review.comment}</p>
+                            <small>${review.created_at}</small>
+                    `;
+                    if (review.image) {
+                        reviewHtml += `<div class="mt-2"><img src="${review.image}" class="img-thumbnail" width="100"></div>`;
+                    }
+                    reviewHtml += `</div>`;
+                    $("#reviews-list").append(reviewHtml);
+                });
+            }
+        }
+    });
+}
+
+function addToCart(productId) {
+    console.log("Adding product to cart:", productId);
+    
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    const csrftoken = getCookie('csrftoken');
+    
+    fetch(`/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => {
+        console.log("Response status:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Response data:", data);
+        if (data.status === 'success') {
+            alert(data.message);
+        } else {
+            alert(data.message || 'Error adding to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding to cart');
+    });
+}
+</script>
+{% endblock %}

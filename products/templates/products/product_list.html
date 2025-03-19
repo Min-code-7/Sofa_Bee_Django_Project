@@ -2,31 +2,94 @@
 {% load static %}
 {% csrf_token %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'products/css/product_styles.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <h2 class="text-center mb-4">Products List</h2>
 
-    <!-- Search Bar -->
+    <!-- Search and Add Product Bar -->
     <div class="row mb-3">
-        <div class="col-md-9">
+        <div class="{% if user.is_authenticated and user.userprofile.user_type == 'merchant' %}col-md-7{% else %}col-md-9{% endif %}">
             <input type="text" id="search-input" class="form-control" placeholder="Please input product name to search...">
         </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" onclick="searchProducts()">Search</button>
+        </div>
+        {% if user.is_authenticated and user.userprofile.user_type == 'merchant' %}
         <div class="col-md-3">
-            <button class="btn btn-primary" id="search-btn">Search</button>
+            <a href="{% url 'products:add_product' %}" class="btn btn-success w-100">Add New Product</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Categories Section - Enhanced Display -->
+    {% if categories %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Browse Categories</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Desktop View: Horizontal Grid -->
+                    <div class="d-none d-md-block">
+                        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-2">
+                            <div class="col">
+                                <a href="{% url 'products:product_list' %}" 
+                                   class="btn btn-outline-secondary w-100 {% if not selected_category %}active{% endif %}">
+                                    All Products
+                                </a>
+                            </div>
+                            {% for category in categories %}
+                            <div class="col">
+                                <a href="{% url 'products:product_list' %}?category={{ category.name }}" 
+                                   class="btn btn-outline-secondary w-100 text-start text-truncate {% if selected_category == category.name %}active{% endif %}"
+                                   title="{{ category.name }}">
+                                    {{ category.name }}
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile View: Dropdown -->
+                    <div class="d-md-none">
+                        <select class="form-select" id="category-select" onchange="filterByCategory(this.value)">
+                            <option value="" {% if not selected_category %}selected{% endif %}>All Products</option>
+                            {% for category in categories %}
+                            <option value="{{ category.name }}" {% if selected_category == category.name %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- productList -->
     <div class="row" id="product-list">
         {% for product in products %}
         <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-sm h-100">
                 {% if product.image %}
-                <img src="{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+                <div class="product-image-container">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                </div>
+                {% else %}
+                <div class="product-image-container d-flex align-items-center justify-content-center bg-light">
+                    <span class="text-muted">No Image</span>
+                </div>
                 {% endif %}
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
                     <h5 class="card-title">{{ product.name }}</h5>
-                    <p class="card-text">{{ product.description|truncatewords:15 }}</p>
+                    <p class="card-text text-muted small">{{ product.category.name }}</p>
+                    <p class="card-text flex-grow-1">{{ product.description|truncatewords:15 }}</p>
                     <p><strong>Price: <span class="text-primary">${{ product.price }}</span></strong></p>
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'products:product_detail' product.id %}" class="btn btn-primary">View Details</a>
@@ -36,29 +99,74 @@
             </div>
         </div>
         {% empty %}
-        <div class="col text-center">
-            <p class="text-muted">No products available</p>
+        <div class="col-12 text-center py-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">No products available yet</h5>
+                    
+                    {% if user.is_authenticated and user.userprofile.user_type == 'merchant' %}
+                    <p class="card-text">As a merchant, you can add products to your store.</p>
+                    <a href="{% url 'products:add_product' %}" class="btn btn-lg btn-success mt-3">
+                        <i class="fas fa-plus-circle"></i> Add Your First Product
+                    </a>
+                    {% else %}
+                    <p class="card-text">Products will be available soon. Please check back later!</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if products.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+            
+            {% for i in products.paginator.page_range %}
+                {% if products.number == i %}
+                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ i }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">Next</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
-<!-- jQuery + AJAX -->
+<!-- jQuery + AJAX-->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Search button click event
-    $("#search-btn").click(function() {
-        searchProducts();
-    });
-    
-    // Add to cart button click event
-    $(".add-to-cart").click(function() {
-        var productId = $(this).data("id");
-        addToCart(productId);
-    });
-    
-    // Search products function
+    function filterByCategory(category) {
+        if (category) {
+            window.location.href = "{% url 'products:product_list' %}?category=" + encodeURIComponent(category);
+        } else {
+            window.location.href = "{% url 'products:product_list' %}";
+        }
+    }
+
     function searchProducts() {
         var query = $("#search-input").val();
         $.ajax({
@@ -69,78 +177,95 @@ $(document).ready(function() {
                 $("#product-list").html("");
 
                 if (data.products.length === 0) {
-                    $("#product-list").html("<p class='text-muted text-center'>No matching items found.</p>");
+                    $("#product-list").html(`
+                        <div class="col-12 text-center py-5">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">No matching products found</h5>
+                                    <p class="card-text">Try different search terms or browse categories.</p>
+                                    <button class="btn btn-outline-secondary mt-3" onclick="window.location.reload()">
+                                        Reset Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
                 } else {
                     $.each(data.products, function(index, product) {
-                        var html = '<div class="col-md-4 mb-4">';
-                        html += '<div class="card shadow-sm">';
-                        html += '<img src="' + product.image + '" class="card-img-top" alt="' + product.name + '">';
-                        html += '<div class="card-body">';
-                        html += '<h5 class="card-title">' + product.name + '</h5>';
-                        html += '<p class="card-text">' + product.description + '</p>';
-                        html += '<p><strong>Price: <span class="text-primary">$' + product.price.toFixed(2) + '</span></strong></p>';
-                        html += '<div class="d-flex justify-content-between">';
-                        html += '<a href="/products/' + product.id + '/" class="btn btn-primary">View Details</a>';
-                        html += '<button class="btn btn-success add-to-cart" data-id="' + product.id + '">Add to Cart</button>';
-                        html += '</div></div></div></div>';
-                        $("#product-list").append(html);
-                    });
-                    
-                    // Rebind click event for new add-to-cart buttons
-                    $(".add-to-cart").click(function() {
-                        var productId = $(this).data("id");
-                        addToCart(productId);
+                        var imageHtml = product.image ? 
+                            `<div class="product-image-container" style="height: 200px; overflow: hidden;">
+                                <img src="${product.image}" class="card-img-top img-fluid w-100" alt="${product.name}" style="object-fit: cover; height: 100%;">
+                             </div>` : 
+                            '<div class="text-center py-5 bg-light">No Image</div>';
+                            
+                        $("#product-list").append(`
+                            <div class="col-md-4 mb-4">
+                                <div class="card shadow-sm h-100">
+                                    ${imageHtml}
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title">${product.name}</h5>
+                                        <p class="card-text text-muted small">${product.category || ''}</p>
+                                        <p class="card-text flex-grow-1">${product.description}</p>
+                                        <p><strong>Price: <span class="text-primary">$${product.price.toFixed(2)}</span></strong></p>
+                                        <div class="d-flex justify-content-between">
+                                            <a href="/products/${product.id}/" class="btn btn-primary">View Details</a>
+                                            <button class="btn btn-success" onclick="addToCart(${product.id})">Add to Cart</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
                     });
                 }
             }
         });
     }
     
-    // Add to cart function
     function addToCart(productId) {
         console.log("Adding product to cart:", productId);
-        
-        // Get CSRF token from cookie
-        var csrftoken = getCookie('csrftoken');
-        
-        $.ajax({
-            url: '/cart/add/' + productId + '/',
-            type: 'POST',
+    
+        // 从cookie获取CSRF令牌
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    
+        const csrftoken = getCookie('csrftoken');
+    
+        fetch(`/cart/add/${productId}/`, {
+            method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': csrftoken
-            },
-            success: function(data) {
-                console.log("Response data:", data);
-                if (data.status === 'success') {
-                    alert(data.message);
-                    location.reload(); 
-                } else {
-                    alert(data.message || 'Error adding to cart');
-                }
-            },
-            error: function(error) {
-                console.error('Error:', error);
-                alert('An error occurred while adding to cart');
             }
+        })
+        .then(response => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Response data:", data);
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload(); 
+            } else {
+                alert(data.message || 'Error adding to cart');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding to cart');
         });
     }
-    
-    // Helper function to get cookie
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-});
 </script>
 {% endblock %}
