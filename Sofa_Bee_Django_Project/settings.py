@@ -41,9 +41,9 @@ INSTALLED_APPS = [
     'users',
     'products',
     'cart',
+    'profiles',  # 移到orders之前，这样orders可以使用profiles的模板标签
     'orders',
     'addresses',
-    'profiles',
     'reviews',
 ]
 
@@ -126,6 +126,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'profiles' / 'static',
+]
 
 # Media files (User uploaded files)
 MEDIA_URL = '/media/'

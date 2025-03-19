@@ -1,11 +1,29 @@
 {% extends "base.html" %}
+{% load address_filters %}
 {% block content %}
 <div class="container">
     <h2>Order Details</h2>
     <p><strong>Order Number:</strong> {{ order.order_number }}</p>
     <p><strong>Status:</strong> {{ order.get_status_display }}</p>
     <p><strong>Total Price:</strong> ${{ order.total_price }}</p>
-    <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
+    
+    <!-- Shipping Address Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Shipping Address</h5>
+        </div>
+        <div class="card-body">
+            {% with address_str=order.shipping_address|stringformat:"s" %}
+                {% if "Full Name:" in address_str %}
+                    <p><strong>Name:</strong> {{ address_str|extract_field:"Full Name:" }}</p>
+                    <p><strong>Phone Number:</strong> {{ address_str|extract_field:"Phone Number:" }}</p>
+                    <p><strong>Address:</strong> {{ address_str|extract_field:"Delivery Address:" }}</p>
+                {% else %}
+                    <p><strong>Shipping Address:</strong> {{ order.shipping_address }}</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
     <h3>Items:</h3>
     <table class="table">
         <thead>

@@ -1,4 +1,5 @@
-{% extends 'base.html' %}
+    {% extends 'base.html' %}
+{% load address_filters %}
 
 {% block title %}Order Detail{% endblock %}
 
@@ -23,14 +24,30 @@
                                 <h6>Shipping Address</h6>
                                 <ul class="list-unstyled">
                                     {% if order_info.address.receiver_name %}
+                                        <!-- 如果是Address对象 -->
                                         <li><strong>Name: </strong>{{ order_info.address.receiver_name }}</li>
                                         <li><strong>Phone Number: </strong>{{ order_info.address.receiver_phone }}</li>
                                         <li>
                                             <strong>Address: </strong>
-                                            {{ order_info.address.detail_address }}, {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                                            {{ order_info.address.detail_address }}
+                                            {% if order_info.address.district or order_info.address.city or order_info.address.province %}
+                                                , {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                                            {% endif %}
                                         </li>
                                     {% else %}
-                                        <li><strong>Address: </strong>{{ order_info.address }}</li>
+                                        <!-- 尝试解析格式化的地址字符串 -->
+                                        {% with address_str=order_info.address|stringformat:"s" %}
+                                            {% if "Full Name:" in address_str %}
+                                                <li><strong>Name: </strong>{{ address_str|extract_field:"Full Name:" }}</li>
+                                                <li><strong>Phone Number: </strong>{{ address_str|extract_field:"Phone Number:" }}</li>
+                                                <li><strong>Address: </strong>{{ address_str|extract_field:"Delivery Address:" }}</li>
+                                            {% else %}
+                                                <!-- 如果不是格式化的地址字符串 -->
+                                                <li><strong>Name: </strong>N/A</li>
+                                                <li><strong>Phone Number: </strong>N/A</li>
+                                                <li><strong>Address: </strong>{{ order_info.address }}</li>
+                                            {% endif %}
+                                        {% endwith %}
                                     {% endif %}
                                 </ul>
                             </div>

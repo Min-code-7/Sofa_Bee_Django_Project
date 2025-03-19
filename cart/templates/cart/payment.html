@@ -45,10 +45,12 @@
                     <p><strong>Total Price:</strong> ${{ total_price }}</p>
                     <hr>
                     <h6>Shipping Information:</h6>
-                    <p class="mb-1"><strong>Name:</strong> {{ shipping_info.name }}</p>
+                    <p class="mb-1"><strong>Recipient:</strong> {{ shipping_info.name }}</p>
                     <p class="mb-1"><strong>Phone:</strong> {{ shipping_info.phone }}</p>
                     <p class="mb-1"><strong>Address:</strong> {{ shipping_info.address }}</p>
+                    {% if shipping_info.postal_code %}
                     <p><strong>Postal Code:</strong> {{ shipping_info.postal_code }}</p>
+                    {% endif %}
                     <hr>
                     <a href="{% url 'cart:shipping' %}" class="btn btn-outline-secondary d-block">Back to Shipping</a>
                 </div>

@@ -1,5 +1,6 @@
 import string
 import random
+import os
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.http.response import JsonResponse
@@ -241,6 +242,29 @@ def delete_order(request, id):
         messages.error(request, "订单不存在或您无权删除此订单")
     
     return redirect('history_order')
+
+
+def change_avatar(request):
+    """更改用户头像"""
+    if request.method == 'POST':
+        avatar = request.POST.get('avatar')
+        if avatar:
+            try:
+                userprofile = UserProfile.objects.get(user=request.user)
+                userprofile.avatar = avatar
+                userprofile.save()
+                messages.success(request, "Avatar updated successfully.")
+            except UserProfile.DoesNotExist:
+                messages.error(request, "User profile not found.")
+        return redirect('profiles', id=request.user.id)
+    
+    # 获取可用的头像列表
+    avatars = []
+    avatars.append('default.png')  # 默认头像
+    for i in range(1, 13):  # pic1.png 到 pic12.png
+        avatars.append(f'pic{i}.png')
+    
+    return render(request, 'change_avatar.html', {'avatars': avatars})
 
 
 def order_detail(request, id):

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import profiles, modify, send_email_captcha, compare_code, history_order, order_detail, delete_order
+from .views import profiles, modify, send_email_captcha, compare_code, history_order, order_detail, delete_order, change_avatar
 
 urlpatterns = [
     path('<int:id>/', profiles, name='profiles'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('history_order/<int:id>/', history_order, name='history_order_with_id'),
     path('order_detail/<int:id>/', order_detail, name='history_order_detail'),
     path('delete_order/<int:id>/', delete_order, name='delete_order'),
+    path('change_avatar/', change_avatar, name='change_avatar'),
 ]

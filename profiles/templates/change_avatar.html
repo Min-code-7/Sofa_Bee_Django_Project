@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Change Avatar{% endblock %}
+
+{% block content %}
+<style>
+    .avatar-option {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    
+    .avatar-option:hover {
+        transform: scale(1.05);
+        border-color: #007bff;
+    }
+    
+    .avatar-selected {
+        border-color: #28a745;
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.5);
+    }
+    
+    .avatar-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 20px 0;
+    }
+    
+    .a {
+        width: 300px;
+        height: 100px;
+        text-align: center;
+        font-size: 23px;
+        justify-content: center;
+    }
+</style>
+
+<div style="display: flex; margin-top: 50px;">
+    <div style="flex: 1; background-color: #f0f0f0;">
+        <div class="container" style="flex: 3; background-color: white; height: 100%;">
+            <div style="float:left;width: 35%;margin: auto">
+                <div class="col-md-3 sidebar">
+                    <div class="list-group " style="width: 100%;padding-left: 80px">
+                        <a class="list-group-item list-group-item-action a" aria-current="true" href="{% url 'profiles' id=user.id %}">
+                           <h3>Profile</h3>
+                        </a>
+                        <a href="{% url 'cart:cart_detail' %}" class="list-group-item list-group-item-action a">Cart</a>
+                        <a href="{% url 'history_order' %}" class="list-group-item list-group-item-action a">My Orders</a>
+                        <a class="list-group-item list-group-item-action a" href="{% url 'history_order' %}">History Orders</a>
+                        <a class="list-group-item list-group-item-action a" href="{% url 'modify_profile' %}">Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div style="float:left;width:700px">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Choose Your Avatar</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">Click on an avatar to select it, then click "Save" to update your profile picture.</p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" id="selected_avatar" name="avatar" value="">
+                            
+                            <div class="avatar-container">
+                                {% for avatar in avatars %}
+                                <div class="text-center">
+                                    <img src="{% static 'images/'|add:avatar %}" alt="Avatar option" class="avatar-option" data-avatar="{{ avatar }}" onclick="selectAvatar(this)">
+                                    <p class="small text-muted mt-1">{{ avatar }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary" id="save-btn" disabled>Save Avatar</button>
+                                <a href="{% url 'profiles' id=user.id %}" class="btn btn-secondary ms-2">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectAvatar(element) {
+        // Remove selected class from all avatars
+        document.querySelectorAll('.avatar-option').forEach(avatar => {
+            avatar.classList.remove('avatar-selected');
+        });
+        
+        // Add selected class to clicked avatar
+        element.classList.add('avatar-selected');
+        
+        // Update hidden input value
+        document.getElementById('selected_avatar').value = element.dataset.avatar;
+        
+        // Enable save button
+        document.getElementById('save-btn').disabled = false;
+    }
+</script>
+{% endblock %}

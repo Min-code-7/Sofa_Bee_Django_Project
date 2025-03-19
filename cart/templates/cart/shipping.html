@@ -19,6 +19,52 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
+                        
+                        <!-- Select existing address section -->
+                        {% if form.use_existing_address.field.queryset.exists %}
+                        <div class="mb-4">
+                            <h5>Use a Saved Address</h5>
+                            <div class="mb-3">
+                                <label for="{{ form.use_existing_address.id_for_label }}" class="form-label">{{ form.use_existing_address.label }}</label>
+                                {{ form.use_existing_address.errors }}
+                                {{ form.use_existing_address|add_class:"form-select" }}
+                            </div>
+                            <p class="text-muted">Or enter a new address below</p>
+                            <hr>
+                        </div>
+                        
+                        <!-- Store address data in JavaScript -->
+                        <script>
+                            // Store address data for auto-fill
+                            var savedAddresses = {};
+                            {% for address in form.use_existing_address.field.queryset %}
+                            savedAddresses["{{ address.id }}"] = {
+                                "name": "{{ address.receiver_name }}",
+                                "phone": "{{ address.receiver_phone }}",
+                                "address": "{{ address.province }} {{ address.city }} {{ address.district }}".trim(),
+                                "postal_code": "{{ address.detail_address }}"
+                            };
+                            {% endfor %}
+                            
+                            // Add event listener to the select element
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var addressSelect = document.getElementById('{{ form.use_existing_address.id_for_label }}');
+                                addressSelect.addEventListener('change', function() {
+                                    var selectedId = this.value;
+                                    if (selectedId && savedAddresses[selectedId]) {
+                                        // Fill in the form fields
+                                        document.getElementById('{{ form.name.id_for_label }}').value = savedAddresses[selectedId].name;
+                                        document.getElementById('{{ form.phone.id_for_label }}').value = savedAddresses[selectedId].phone;
+                                        document.getElementById('{{ form.address.id_for_label }}').value = savedAddresses[selectedId].address;
+                                        document.getElementById('{{ form.postal_code.id_for_label }}').value = savedAddresses[selectedId].postal_code;
+                                    }
+                                });
+                            });
+                        </script>
+                        {% endif %}
+                        
+                        <!-- New address section -->
+                        <h5>Enter New Address</h5>
                         <div class="mb-3">
                             <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
                             {{ form.name.errors }}
@@ -41,6 +87,11 @@
                             <label for="{{ form.postal_code.id_for_label }}" class="form-label">{{ form.postal_code.label }}</label>
                             {{ form.postal_code.errors }}
                             {{ form.postal_code|add_class:"form-control" }}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.save_address|add_class:"form-check-input" }}
+                            <label for="{{ form.save_address.id_for_label }}" class="form-check-label">{{ form.save_address.label }}</label>
                         </div>
                         
                         <button type="submit" class="btn btn-primary">Continue to Payment</button>

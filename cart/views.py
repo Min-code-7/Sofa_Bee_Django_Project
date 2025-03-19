@@ -323,18 +323,47 @@ def shipping(request):
         return redirect('products:product_list')
     
     if request.method == 'POST':
-        form = ShippingAddressForm(request.POST)
+        form = ShippingAddressForm(request.POST, user=request.user)
         if form.is_valid():
-            # Store shipping info in session
-            request.session['shipping_info'] = {
-                'name': form.cleaned_data['name'],
-                'phone': form.cleaned_data['phone'],
-                'address': form.cleaned_data['address'],
-                'postal_code': form.cleaned_data['postal_code'],
-            }
+            # Check if user selected an existing address
+            existing_address = form.cleaned_data.get('use_existing_address')
+            
+            if existing_address:
+                # Use the selected address
+                request.session['shipping_info'] = {
+                    'name': existing_address.receiver_name,
+                    'phone': existing_address.receiver_phone,
+                    'address': f"{existing_address.province} {existing_address.city} {existing_address.district}".strip(),
+                    'postal_code': existing_address.detail_address,  # detail_address is used for postal code
+                }
+            else:
+                # Use the form data
+                request.session['shipping_info'] = {
+                    'name': form.cleaned_data['name'],
+                    'phone': form.cleaned_data['phone'],
+                    'address': form.cleaned_data['address'],
+                    'postal_code': form.cleaned_data['postal_code'],
+                }
+                
+                # Save address to profile if requested
+                if form.cleaned_data.get('save_address'):
+                    from addresses.models import Address
+                    
+                    # Create a new address
+                    Address.objects.create(
+                        user=request.user,
+                        receiver_name=form.cleaned_data['name'],
+                        receiver_phone=form.cleaned_data['phone'],
+                        province='',  # Not using separate province/city/district
+                        city='',
+                        district='',
+                        detail_address=form.cleaned_data['postal_code'],  # Store postal code in detail_address
+                        is_default=False  # Not setting as default
+                    )
+                    
             return redirect('cart:payment')
     else:
-        form = ShippingAddressForm()
+        form = ShippingAddressForm(user=request.user)
     
     context = {
         'form': form,
@@ -395,13 +424,26 @@ def payment_success(request):
         # Reduce stock
         item.product.reduce_stock(item.quantity)
 
-    # Create the order
+    # Create the order with properly formatted address
+    name = shipping_info.get('name', '')
+    phone = shipping_info.get('phone', '')
+    address = shipping_info.get('address', '')
+    postal_code = shipping_info.get('postal_code', '')
+    
+    # Format address and postal code with comma if both exist
+    delivery_address = address
+    if postal_code:
+        delivery_address = f"{address}, {postal_code}"
+    
+    # Create a simple formatted address string
+    formatted_address = f"Full Name: {name}\nPhone Number: {phone}\nDelivery Address: {delivery_address}"
+    
     order = Order.objects.create(
         user=request.user,
         order_number=order_number,
         total_price=cart.get_total_price(),
         status='paid',
-        shipping_address=shipping_info.get('address', ''),
+        shipping_address=formatted_address,
     )
     
     # Create order items

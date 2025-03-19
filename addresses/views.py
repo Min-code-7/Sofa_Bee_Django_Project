@@ -23,7 +23,7 @@ def modify_address(request, address_id):
         address.district = district_1
         address.detail_address = detail
         address.save()
-        return redirect('modify_address', address_id=address_id)
+        return redirect('profiles', id=user_id)
     return render(request, 'modify_address.html', {'address': address, 'user_id': user_id})
 
 
@@ -48,14 +48,13 @@ def add_address(request, id=None):
                                          user=request.user,
                                          is_default=True)
 
-        return redirect("add_address", id=id)
+        return redirect("profiles", id=id)
 
     return render(request, 'add_address.html', {'id': id})
 
 
 def delete_address(request, address_id):
     address = Address.objects.get(id=address_id)
-    address.is_default = False
-    address.save()
     user_id = address.user.id
+    address.delete()
     return redirect("profiles", id=user_id)
