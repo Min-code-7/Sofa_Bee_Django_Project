@@ -13,9 +13,26 @@ class Category(models.Model):
 
     @staticmethod
     def create_default_categories():
-        default_categories = ["Makeup", "Electronics", "Clothing"]
-        for category_name in default_categories:
-            Category.objects.get_or_create(name=category_name)
+        default_categories = [
+            {"name": "Makeup", "description": "Cosmetics, skincare products, and beauty accessories"},
+            {"name": "Electronics", "description": "Gadgets, computers, phones and digital devices"},
+            {"name": "Clothing", "description": "Apparel, fashion wear and accessories"},
+            {"name": "Home & Kitchen", "description": "Household items, kitchen appliances, and home decor"},
+            {"name": "Sports & Outdoors", "description": "Sports equipment, outdoor gear, and fitness accessories"},
+            {"name": "Books", "description": "Fiction, non-fiction, textbooks, and other printed materials"},
+            {"name": "Health & Personal Care", "description": "Vitamins, medications, personal hygiene products"},
+            {"name": "Toys & Games", "description": "Children's toys, board games, and collectibles"},
+            {"name": "Jewelry & Accessories", "description": "Watches, necklaces, earrings, and fashion accessories"},
+            {"name": "Food & Beverages", "description": "Groceries, snacks, drinks, and specialty food items"},
+            {"name": "Pet Supplies", "description": "Food, toys, and accessories for pets"},
+            {"name": "Furniture", "description": "Chairs, tables, beds, and home furniture"},
+            {"name": "Baby Products", "description": "Clothing, toys, and care products for babies and infants"},
+            {"name": "Automotive", "description": "Car accessories, tools, and auto maintenance products"},
+            {"name": "Office Supplies", "description": "Stationery, desk accessories, and office equipment"},
+        ]
+
+        for category in default_categories:
+            Category.objects.get_or_create(name=category["name"], defaults={"description": category["description"]})
 
 class Product(models.Model):
     name = models.CharField(max_length=255)

@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import Review
 from products.models import Product
 from .forms import ReviewForm
@@ -24,7 +25,7 @@ def filter_reviews(request, product_id):
         reviews = reviews.filter(comment__icontains=keyword)
 
     if only_images:
-        reviews = reviews.exclude(image='')
+        reviews = reviews.filter(image__isnull=False).exclude(image='')
 
     print(f"Filtered Reviews: {reviews}")
 
@@ -44,6 +45,10 @@ def filter_reviews(request, product_id):
 
 @login_required
 def add_review(request, product_id):
+    if not hasattr(request.user, "userprofile") or request.user.userprofile.user_type != 'regular':
+        messages.error(request, "Only regular users can submit reviews.")
+        return redirect('products:product_detail', product_id=product_id)
+
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == 'POST':
@@ -53,6 +58,9 @@ def add_review(request, product_id):
             review.product = product
             review.user = request.user
             review.save()
+            messages.success(request, "Your review has been submitted successfully!")
             return redirect('products:product_detail', product_id=product.id)
+        else:
+            messages.error(request, "There was an error with your submission. Please check the form.")
 
     return redirect('products:product_detail', product_id=product.id)

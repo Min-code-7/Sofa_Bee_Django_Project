@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.templatetags.static import static
 from django.contrib import messages
+from django.core.paginator import Paginator
 
 from reviews.forms import ReviewForm
 from .forms import ProductForm
@@ -73,9 +74,14 @@ def product_list(request):
         products = products.filter(name__icontains=query) | products.filter(description__icontains=query)
 
     if category_name:
-        products = products.filter(category__name__iexact=category_name)
+        products = products.filter(category__name__icontains=category_name)
 
     categories = Category.objects.all()
+
+    # paginator
+    paginator = Paginator(products, 9)
+    page = request.GET.get('page')
+    products = paginator.get_page(page)
 
     return render(request, "products/product_list.html", {"products": products, "query": query, "categories": categories, "selected_category": category_name})
 
@@ -186,7 +192,7 @@ def filter_category(request):
     category = request.GET.get('category', None)
 
     if category:
-        products = Product.objects.filter(category__name=category)
+        products = Product.objects.filter(category__name__icontains=category)
     else:
         products = Product.objects.all()
 

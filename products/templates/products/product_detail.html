@@ -88,30 +88,35 @@
     <div class="row mt-4">
         <div class="col-md-12">
             {% if user.is_authenticated %}
-                <h4>Write a Review</h4>
-                
-                <form id="review-form" method="POST" action="/products/reviews/add/{{ product.id }}/" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="rating" class="form-label">Rating:</label>
-                        <select id="rating" class="form-select" name="rating" required>
-                            <option value="5">⭐⭐⭐⭐⭐</option>
-                            <option value="4">⭐⭐⭐⭐</option>
-                            <option value="3">⭐⭐⭐</option>
-                            <option value="2">⭐⭐</option>
-                            <option value="1">⭐</option>
-                        </select>
+                {% if user.userprofile.user_type == 'regular' %}
+                    <h4>Write a Review</h4>
+                    <form id="review-form" method="POST" action="/products/reviews/add/{{ product.id }}/" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Rating:</label>
+                            <select id="rating" class="form-select" name="rating" required>
+                                <option value="5">⭐⭐⭐⭐⭐</option>
+                                <option value="4">⭐⭐⭐⭐</option>
+                                <option value="3">⭐⭐⭐</option>
+                                <option value="2">⭐⭐</option>
+                                <option value="1">⭐</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comment:</label>
+                            <textarea id="comment" class="form-control" name="comment" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image (optional):</label>
+                            <input type="file" id="image" class="form-control" name="image">
+                        </div>
+                        <button type="submit" class="btn btn-success">Submit Review</button>
+                    </form>
+                {% elif user.userprofile.user_type == 'merchant' %}
+                    <div class="alert alert-info">
+                        <p>As a merchant, you cannot submit reviews. This feature is only available to regular users.</p>
                     </div>
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Comment:</label>
-                        <textarea id="comment" class="form-control" name="comment" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Image (optional):</label>
-                        <input type="file" id="image" class="form-control" name="image">
-                    </div>
-                    <button type="submit" class="btn btn-success">Submit Review</button>
-                </form>
+                {% endif %}
             {% else %}
                 <p><a href="{% url 'users:login' %}">Log in</a> to write a review</p>
             {% endif %}
