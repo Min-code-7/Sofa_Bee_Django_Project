@@ -18,7 +18,7 @@
                     {{ form.category }}
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Price</label>
+                    <label class="form-label">Price (£)</label>
                     {{ form.price }}
                 </div>
                 <div class="mb-3">
@@ -28,6 +28,14 @@
                 <div class="mb-3">
                     <label class="form-label">Image</label>
                     {{ form.image }}
+                </div>
+                <!-- update function: add variant -->
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="use_variants" name="use_variants">
+                    <label class="form-check-label" for="use_variants">
+                        Please add new parameters (e.g. different sizes, colors, formats)
+                    </label>
+                    <div class="form-text">If selected, you will be redirected to add additional product parameters after creating the product.</div>
                 </div>
                 <button type="submit" class="btn btn-success w-100">Submit</button>
             </form>

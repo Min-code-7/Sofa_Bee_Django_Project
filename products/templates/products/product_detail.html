@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <!-- product details -->
+    <!-- Product details -->
     <div class="row">
         <div class="col-md-5">
             {% if product.image %}
@@ -14,21 +14,51 @@
         <div class="col-md-7">
             <h2>{{ product.name }}</h2>
             <p>{{ product.description }}</p>
-            <p class="text-primary"><strong>Price: ${{ product.price }}</strong></p>
-            <p><strong>Category:</strong> {{ product.category.name }}</p>
-            <p><strong>Stock:</strong> {{ product.stock }} units available</p>
-            <button class="btn btn-success" onclick="addToCart({{ product.id }})">Add to Cart</button>
+            
+            <!-- Product variants selection -->
+            {% if has_variants %}
+                <div id="variant-selection" class="mb-3">
+                    {% for attribute in attributes %}
+                        <div class="mb-3">
+                            <label class="form-label"><strong>{{ attribute.name }}:</strong></label>
+                            <div class="btn-group attribute-options" role="group" data-attribute-id="{{ attribute.id }}">
+                                {% for value in attribute.values %}
+                                    <input type="radio" class="btn-check attribute-value" name="attr_{{ attribute.id }}" 
+                                           id="attr_{{ attribute.id }}_{{ value.id }}" value="{{ value.id }}" 
+                                           autocomplete="off" {% if forloop.first %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary" for="attr_{{ attribute.id }}_{{ value.id }}">{{ value.value }}</label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <p class="text-primary"><strong>Price: £<span id="variant-price">
+                    {% if default_variant %}{{ default_variant.price }}{% else %}{{ product.price }}{% endif %}
+                </span></strong></p>
+                
+                <p><strong>Stock:</strong> <span id="variant-stock">
+                    {% if default_variant %}{{ default_variant.stock }}{% else %}{{ product.stock }}{% endif %}
+                </span> units available</p>
+                
+                <button class="btn btn-success" id="add-to-cart-btn">Add to Cart</button>
+            {% else %}
+                <p class="text-primary"><strong>Price: £{{ product.price }}</strong></p>
+                <p><strong>Category:</strong> {{ product.category.name }}</p>
+                <p><strong>Stock:</strong> {{ product.stock }} units available</p>
+                <button class="btn btn-success" onclick="addToCart({{ product.id }})">Add to Cart</button>
+            {% endif %}
         </div>
     </div>
 
     <hr>
 
-    <!-- review filtering bar -->
+    <!-- Review filtering bar -->
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Filter Reviews</h4>
             <div class="d-flex gap-3">
-                <!-- filter review -->
+                <!-- Filter review -->
                 <select id="filter-rating" class="form-select">
                     <option value="">All Ratings</option>
                     <option value="5">⭐⭐⭐⭐⭐ (5 stars)</option>
@@ -38,10 +68,10 @@
                     <option value="1">⭐ (1 star)</option>
                 </select>
 
-                <!-- keywords -->
+                <!-- Keywords -->
                 <input type="text" id="filter-keyword" placeholder="Search reviews...">
 
-                <!-- with images -->
+                <!-- With images -->
                 <div class="form-check">
                     <input type="checkbox" class="form-check-input" id="filter-images">
                     <label for="filter-images" class="form-check-label">Only with Images</label>
@@ -54,7 +84,7 @@
 
     <hr>
 
-    <!-- reviews list -->
+    <!-- Reviews list -->
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Customer Reviews</h4>
@@ -84,7 +114,7 @@
 
     <hr>
 
-    <!-- submit reviews with user login -->
+    <!-- Submit reviews with user login -->
     <div class="row mt-4">
         <div class="col-md-12">
             {% if user.is_authenticated %}
@@ -124,9 +154,124 @@
     </div>
 </div>
     
-<!-- AJAX implement filter-->    
+<!-- AJAX implement filter -->    
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+{% if has_variants %}
+// Variant selection and cart functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Get variant data from server
+    const variantData = {{ variants_json|safe }};
+    const attributeGroups = document.querySelectorAll('.attribute-options');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const variantPriceEl = document.getElementById('variant-price');
+    const variantStockEl = document.getElementById('variant-stock');
+    
+    // Store the selected variant ID
+    let selectedVariantId = null;
+    
+    // Initialize with default variant
+    updateSelectedVariant();
+    
+    // Add event listeners to all attribute options
+    attributeGroups.forEach(group => {
+        const radioButtons = group.querySelectorAll('.attribute-value');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', updateSelectedVariant);
+        });
+    });
+    
+    // Handle the Add to Cart button click
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', function() {
+            if (selectedVariantId) {
+                addToCartWithVariant({{ product.id }}, selectedVariantId);
+            } else {
+                addToCart({{ product.id }});
+            }
+        });
+    }
+    
+    // Function to update the selected variant based on selected options
+    function updateSelectedVariant() {
+        if (!variantData || variantData.length === 0) return;
+        
+        // Get all selected attribute values
+        const selectedAttributeValues = [];
+        attributeGroups.forEach(group => {
+            const selectedRadio = group.querySelector('input[type="radio"]:checked');
+            if (selectedRadio) {
+                selectedAttributeValues.push(parseInt(selectedRadio.value));
+            }
+        });
+        
+        // Find the matching variant
+        for (const variant of variantData) {
+            // Check if all selected attributes match this variant
+            // This approach assumes that each variant has exactly the same number of attribute values
+            // as the selected ones (each attribute has exactly one value selected)
+            if (selectedAttributeValues.length === variant.attribute_values.length) {
+                let allMatch = true;
+                for (const valueId of selectedAttributeValues) {
+                    if (!variant.attribute_values.includes(valueId)) {
+                        allMatch = false;
+                        break;
+                    }
+                }
+                
+                if (allMatch) {
+                    // Update the variant ID, price, and stock
+                    selectedVariantId = variant.id;
+                    if (variantPriceEl) variantPriceEl.textContent = variant.price;
+                    if (variantStockEl) variantStockEl.textContent = variant.stock;
+                    return;
+                }
+            }
+        }
+        
+        // If no match found, use the default variant
+        const defaultVariant = variantData.find(v => v.is_default) || variantData[0];
+        if (defaultVariant) {
+            selectedVariantId = defaultVariant.id;
+            if (variantPriceEl) variantPriceEl.textContent = defaultVariant.price;
+            if (variantStockEl) variantStockEl.textContent = defaultVariant.stock;
+        }
+    }
+    
+    // Function to add a product variant to cart
+    function addToCartWithVariant(productId, variantId) {
+        console.log("Adding product variant to cart:", productId, variantId);
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch(`/cart/add/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                variant_id: variantId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message || 'Error adding to cart');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding to cart');
+        });
+    }
+});
+{% endif %}
+
 function filterReviews() {
     let rating = $("#filter-rating").val();
     let keyword = $("#filter-keyword").val();
@@ -135,14 +280,12 @@ function filterReviews() {
     console.log("Sending rating:", rating, "Type", typeof rating);
 
     $.ajax({
-        
         url: "/products/reviews/filter/{{ product.id }}/", 
         data: {
             rating: rating ? parseInt(rating, 10) : null,
             keyword: keyword,
             images: onlyImages
         },
-        
         dataType: "json",
         success: function(response) {
             console.log("Filtered Reviews:", response.reviews);
@@ -214,6 +357,22 @@ function addToCart(productId) {
         console.error('Error:', error);
         alert('An error occurred while adding to cart');
     });
+}
+
+// Function to get CSRF token (for variant selection)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 </script>
 {% endblock %}

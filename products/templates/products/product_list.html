@@ -90,7 +90,7 @@
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text text-muted small">{{ product.category.name }}</p>
                     <p class="card-text flex-grow-1">{{ product.description|truncatewords:15 }}</p>
-                    <p><strong>Price: <span class="text-primary">${{ product.price }}</span></strong></p>
+                    <p><strong>Price: <span class="text-primary">£{{ product.price }}</span></strong></p>
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'products:product_detail' product.id %}" class="btn btn-primary">View Details</a>
                         <button class="btn btn-success" onclick="addToCart({{ product.id }})">Add to Cart</button>
@@ -206,7 +206,7 @@
                                         <h5 class="card-title">${product.name}</h5>
                                         <p class="card-text text-muted small">${product.category || ''}</p>
                                         <p class="card-text flex-grow-1">${product.description}</p>
-                                        <p><strong>Price: <span class="text-primary">$${product.price.toFixed(2)}</span></strong></p>
+                                        <p><strong>Price: <span class="text-primary">£${product.price.toFixed(2)}</span></strong></p>
                                         <div class="d-flex justify-content-between">
                                             <a href="/products/${product.id}/" class="btn btn-primary">View Details</a>
                                             <button class="btn btn-success" onclick="addToCart(${product.id})">Add to Cart</button>

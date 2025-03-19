@@ -35,8 +35,9 @@
                     
                     {% if user.is_authenticated %}
                         {% if user.userprofile.user_type == 'merchant' %}
-                        <!-- 只对商家用户显示添加商品链接 -->
-                        <li class="nav-item"><a class="nav-link" href="{% url 'products:add_product' %}">Add Product</a></li>
+                            <li><a class="dropdown-item" href="{% url 'products:add_product' %}">Add New Product</a></li>
+                            <li><a class="dropdown-item" href="{% url 'products:manage_products' %}">My Products</a></li>
+                            <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         
                         <li class="nav-item">
@@ -48,7 +49,7 @@
                             </a>
                         </li>
                         
-                        <!-- 显示用户名和下拉菜单 -->
+                        <!-- Display the username and drop-down menu -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
                               data-bs-toggle="dropdown" aria-expanded="false">

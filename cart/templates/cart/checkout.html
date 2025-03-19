@@ -30,23 +30,35 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail me-3" style="max-width: 60px;">
+                                            {% if item.product and item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" class="img-thumbnail me-3" style="max-width: 60px;">
+                                            {% elif item.product_image %}
+                                                <img src="{{ item.product_image }}" alt="{{ item.product_name }}" class="img-thumbnail me-3" style="max-width: 60px;">
+                                            {% endif %}
                                             <div>
-                                                <h6 class="mb-0">{{ item.product.name }}</h6>
-                                                <small class="text-muted">describe(size,color)</small>
+                                                <h6 class="mb-0">{{ item.product_name }}</h6>
+                                                <small class="text-muted">
+                                                    {% if item.variant %}
+                                                        {% for attr_value in item.variant.attribute_values.all %}
+                                                            <span class="badge bg-light text-dark me-1">{{ attr_value }}</span>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        regular
+                                                    {% endif %}
+                                                </small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>${{ item.product.price }}</td>
+                                    <td>£{{ item.product.price }}</td>
                                     <td>{{ item.quantity }}</td>
-                                    <td class="text-end">${{ item.get_price }}</td>
+                                    <td class="text-end">£{{ item.get_price }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                                    <td class="text-end">${{ total_price }}</td>
+                                    <td class="text-end">£{{ total_price }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
@@ -54,7 +66,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                    <td class="text-end"><strong>${{ total_price }}</strong></td>
+                                    <td class="text-end"><strong>£{{ total_price }}</strong></td>
                                 </tr>
                             </tfoot>
                         </table>

@@ -65,11 +65,17 @@
 												<img src="{{ item.product_image }}" alt="{{ item.product_name }}" class="img-thumbnail" style="max-width: 100px;">
 											</td>
 											<td class="align-middle" style="width: 30%;">
-												<h5>{{ item.product_name }}</h5>
-												<p class="text-muted small">
-													describe(size,color)
-												</p>
-											</td>
+                                                <h5>{{ item.product_name }}</h5>
+                                                <p class="text-muted small">
+                                                    {% if item.variant %}
+                                                        {% for attr_value in item.variant.attribute_values.all %}
+                                                            <span class="badge bg-light text-dark me-1">{{ attr_value }}</span>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        regular
+                                                    {% endif %}
+                                                </p>
+                                            </td>
 											
 											
                                             <td class="align-middle text-center" style="width: 20%;">
@@ -89,10 +95,10 @@
                                                 </strong>
                                             </td> 测试-->
 											<td class="align-middle text-end" style="width: 15%;">
-												<strong class="item-price" data-price="{{ item.product_price }}" data-item="{{ item.id }}">
-													${{ item.get_price }}
-												</strong>
-											</td>
+                                                <strong class="item-price" data-price="{{ item.product_price }}" data-item="{{ item.id }}">
+                                                    £{{ item.get_price }}
+                                                </strong>
+                                            </td>
 											
 											
                                             <td class="align-middle text-center" style="width: 15%;">
@@ -118,7 +124,7 @@
                             </label>
                         </div>
                         <div>
-                            <span class="h5 me-3">Total: <strong id="total-price">${{ total_price }}</strong></span>
+                            <span class="h5 me-3">Total: <strong id="total-price">£{{ total_price }}</strong></span>
                             <button type="button" id="checkout-btn" class="btn btn-primary btn-lg">CHECKOUT</button>
                         </div>
                     </div>
@@ -198,7 +204,7 @@
                     if (data.status === 'success') {
                         document.querySelector(`.item-price[data-item="${itemId}"]`).textContent = 
                             '$' + data.item_price.toFixed(2);
-                        document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                        document.getElementById('total-price').textContent = '£' + data.cart_price.toFixed(2);
                     }
                 });
             });
@@ -221,7 +227,7 @@
                         if (data.status === 'success') {
                             // Remove the item row
                             this.closest('tr').remove();
-                            document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                            document.getElementById('total-price').textContent = '£' + data.cart_price.toFixed(2);
                             
                             // If no items left, refresh the page
                             if (data.cart_total === 0) {
@@ -262,7 +268,7 @@
                 const price = parseFloat(row.querySelector('.item-price').getAttribute('data-price'));
                 total += quantity * price;
             });
-            document.getElementById('total-price').textContent = '$' + total.toFixed(2);
+            document.getElementById('total-price').textContent = '£' + total.toFixed(2);
         }
     });
 </script>
