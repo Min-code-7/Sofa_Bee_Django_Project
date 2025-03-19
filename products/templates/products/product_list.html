@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
-{% csrf_token %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'products/css/product_styles.css' %}">
 {% endblock %}
 
 {% block content %}
+<!-- CSRF Token for AJAX requests -->
+<form id="csrf-form" style="display: none;">
+  {% csrf_token %}
+</form>
 <div class="container mt-4">
     <h2 class="text-center mb-4">Products List</h2>
 
@@ -159,6 +162,18 @@
 <!-- jQuery + AJAX-->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // Add click event handler for all "Add to Cart" buttons
+    $(document).ready(function() {
+        console.log("Document ready, binding click events");
+        
+        // Only use one event binding method
+        $('.add-to-cart').on('click', function() {
+            const productId = $(this).data('id');
+            console.log(`Button clicked for product ${productId}`);
+            addToCart(productId);
+        });
+    });
+
     function filterByCategory(category) {
         if (category) {
             window.location.href = "{% url 'products:product_list' %}?category=" + encodeURIComponent(category);
@@ -224,23 +239,9 @@
     function addToCart(productId) {
         console.log("Adding product to cart:", productId);
     
-        // 从cookie获取CSRF令牌
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    
-        const csrftoken = getCookie('csrftoken');
+        // Get CSRF token from hidden form
+        const csrftoken = document.querySelector('#csrf-form [name=csrfmiddlewaretoken]').value;
+        console.log("CSRF Token:", csrftoken);
     
         fetch(`/cart/add/${productId}/`, {
             method: 'POST',

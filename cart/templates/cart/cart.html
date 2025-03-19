@@ -11,11 +11,23 @@
     <div class="row mb-4">
         <div class="col-md-6 offset-md-6">
             <div class="input-group">
-                <input type="text" id="cart-search" class="form-control" placeholder="Search in cart...">
+                <input type="text" id="cart-search" class="form-control" placeholder="Search in cart..." value="{{ request.GET.q|default:'' }}">
                 <button class="btn btn-primary" type="button" id="search-btn">search</button>
+                {% if request.GET.q %}
+                <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary ms-2">Clear Search</a>
+                {% endif %}
             </div>
         </div>
     </div>
+    
+    {% if request.GET.q %}
+    <div class="alert alert-info mb-4">
+        Showing search results for: <strong>{{ request.GET.q }}</strong>
+        {% if not shops_items %}
+        <p class="mb-0 mt-2">No items found matching your search.</p>
+        {% endif %}
+    </div>
+    {% endif %}
     
     {% if cart.items.count == 0 %}
         <div class="alert alert-info">

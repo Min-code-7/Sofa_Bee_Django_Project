@@ -21,29 +21,7 @@ def get_cart(request):
 
 @login_required
 def cart_detail(request):
-    """Display all items in the user's cart, grouped by shop/merchant.
-    cart = get_cart(request)
-    if not cart:
-        return redirect('users:login')
-    
-    # Group cart items by category (as a stand-in for shop)
-    cart_items = cart.items.select_related('product').all()
-    
-    # Group by category
-    shops_items = {}
-    for item in cart_items:
-        category_name = item.product.category.name
-        if category_name not in shops_items:
-            shops_items[category_name] = []
-        shops_items[category_name].append(item)
-    
-    context = {
-        'cart': cart,
-        'shops_items': shops_items,
-        'total_price': cart.get_total_price(),
-    }
-    return render(request, 'cart/cart.html', context)
-    """
+    """Display all items in the user's cart, grouped by shop/merchant."""
     cart = get_cart(request)
     if not cart:
         return redirect('users:login')
@@ -51,19 +29,15 @@ def cart_detail(request):
     # Get cart items
     cart_items = cart.items.select_related('product', 'product__seller', 'product__category').all()
     
-    """ 
     # Handle search query
     query = request.GET.get('q', '')
     if query:
         cart_items = cart_items.filter(
-            Q(product_name__icontains=query)  # Use product_name instead of product__name
+            Q(product__name__icontains=query) |
+            Q(product__description__icontains=query)
+        )
     
-        ) 
-
-    """
-    
-    # Group by category (simulating grouping by shop)
-    # Since we don't have real shop information, we can assume the first digit of each product ID is the shop ID
+    # Group by seller (shop)
     shops_items = {}
     for item in cart_items:
         seller = item.product.seller
@@ -296,7 +270,7 @@ def cart_search(request):
 @login_required
 def checkout(request):
 
-    # 修改
+    # Modified
     # #Display checkout page with cart summary.
     # cart = get_cart(request)
     # if not cart or cart.items.count() == 0:
