@@ -131,7 +131,7 @@ def compare_code(request):
 def history_order(request, id=None):
     if id is None:
         id = request.user.id
-    orders = Order.objects.filter(user_id=id)
+    orders = Order.objects.filter(user_id=id).order_by('-created_at')  # 按创建时间倒序排列
 
     order_infos = []
 
@@ -174,13 +174,24 @@ def history_order(request, id=None):
                             # 如果获取图片失败，使用None
                             pass
                             
+                        # 获取商品的卖家信息
+                        shop_name = ''
+                        try:
+                            from products.models import Product
+                            product = Product.objects.filter(name=item.product_name).first()
+                            if product and product.seller:
+                                shop_name = product.seller.username
+                        except Exception:
+                            # 如果获取卖家信息失败，使用空字符串
+                            pass
+                            
                         detail = Detail(
                             product_name=item.product_name,
                             image=image,
                             item_price=item.price,
                             quantity=item.quantity,
                             price=item.price*item.quantity,
-                            shop_name=item.shop_name if hasattr(item, 'shop_name') else '',
+                            shop_name=shop_name,
                         )
                         details_1.append(detail)
                     except Exception:

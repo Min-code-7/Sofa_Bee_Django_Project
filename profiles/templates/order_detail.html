@@ -1,28 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Order Detail</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
+{% extends 'base.html' %}
 
-    </style>
-</head>
-<body>
-<div style="display: flex; min-height: 100vh;">
+{% block title %}Order Detail{% endblock %}
 
-    <div style="flex: 1; background-color: #f0f0f0;">
-
-        <div class="container" style="flex: 3; background-color: white; height: 100%;padding-top: 150px">
+{% block content %}
+<div class="container mt-4">
             <div class="container" >
-                <div class="card border-primary m-5">
-                    <div class="card-header text-white">
-                        <h5 class="card-title mb-0" style="color:black">订单信息</h5>
+                <div class="card border-light m-5">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Order Information</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>order inforamtion</h6>
+                                <h6>Order Details</h6>
                                 <ul class="list-unstyled">
                                     <li><strong>Order Number:</strong>{{ order_info.order_number }}</li>
                                     <li><strong>Status: </strong>{{ order_info.status }}</li>
@@ -31,10 +21,15 @@
                                 </ul>
                             </div>
                             <div class="col-md-6">
-                                <h6>address</h6>
+                                <h6>Shipping Address</h6>
                                 <ul class="list-unstyled">
                                     <li>
-                                        <strong>Address: </strong>{{ order_info.address.detail_address }} {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                                        <strong>Address: </strong>
+                                        {% if order_info.address.detail_address %}
+                                            {{ order_info.address.detail_address }} {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                                        {% else %}
+                                            {{ order_info.address }}
+                                        {% endif %}
                                     </li>
                                     <li><strong>Create at: </strong>{{ order_info.created_at }}</li>
                                     <li><strong>Paid at: </strong>{{ order_info.paid_at }}</li>
@@ -43,53 +38,51 @@
                         </div>
                     </div>
                 </div>
-                <div class="card border-primary m-5">
-                    <div class="card-header text-white">
-                        <h5 class="card-title mb-0" style="color:black"></h5>
+                <div class="card border-light m-5">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Order Items</h5>
                     </div>
                     {% for final_result in final_results %}
-                        <div style="padding-top: 30px;width: 80%;margin: auto">
-                            <div class="card-header text-white">
-                                <h5 class="card-title mb-0" style="color:black">
-                                    <div style="float: left;padding-right: 200px">{{ final_result.merchant.shop_name }}</div>
-                                    {{ final_result.merchant.email }}
+                        <div class="card mt-4 border-light">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">
+                                    Merchant: {{ final_result.merchant.shop_name|default:final_result.merchant.username }}
                                 </h5>
                             </div>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>item</th>
-                                    <th>item description</th>
-                                    <th>unit price</th>
-                                    <th>quantity</th>
-                                    <th>total price</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for item_detail in final_result.final_details %}
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <thead>
                                     <tr>
-                                        <td>
-                                            <img style="width: 80px; height: 80px;" src="{{ item_detail.picture }}">
-                                            <span>{{ item_detail.product_name }}</span>
-                                        </td>
-                                        <td>{{ item_detail.description }}</td>
-                                        <td>{{ item_detail.item_price }}</td>
-                                        <td>{{ item_detail.quantity }}</td>
-                                        <td>{{ item_detail.total_price }}</td>
+                                        <th>Image</th>
+                                        <th>Product Name</th>
+                                        <th>Description</th>
+                                        <th>Unit Price</th>
+                                        <th>Quantity</th>
+                                        <th>Total Price</th>
                                     </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                    {% for item_detail in final_result.final_details %}
+                                        <tr>
+                                            <td class="text-center">
+                                                {% if item_detail.image %}
+                                                    <img style="width: 80px; height: 80px;" src="{{ item_detail.image.url }}">
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ item_detail.product_name }}</td>
+                                            <td>{{ item_detail.description }}</td>
+                                            <td>{{ item_detail.item_price }}</td>
+                                            <td>{{ item_detail.item_quantity }}</td>
+                                            <td>{{ item_detail.total_price }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-
                     {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
