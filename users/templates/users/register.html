@@ -19,6 +19,7 @@
                     <label for="id_username" class="form-label">Username</label>
                     {{ form.username.errors }}
                     <input type="text" name="username" id="id_username" class="form-control" required>
+                    <small id="username-feedback" class="text-danger" style="display: none;"></small>
                 </div>
                 
                 <div class="mb-3">
@@ -175,6 +176,45 @@ document.getElementById("send-code").addEventListener("click", function() {
         console.error("Error:", error);
         alert("An error occurred while sending the verification code. Please try again.");
     });
+});
+
+// Check username availability
+let usernameCheckTimeout = null;
+document.getElementById("id_username").addEventListener("input", function() {
+    const username = this.value.trim();
+    const usernameFeedback = document.getElementById("username-feedback");
+    
+    // Clear previous timeout
+    if (usernameCheckTimeout) {
+        clearTimeout(usernameCheckTimeout);
+    }
+    
+    // Hide feedback if username is empty
+    if (!username) {
+        usernameFeedback.style.display = "none";
+        return;
+    }
+    
+    // Set a timeout to avoid too many requests while typing
+    usernameCheckTimeout = setTimeout(function() {
+        fetch(`{% url 'users:check_username' %}?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                usernameFeedback.style.display = "block";
+                
+                if (data.exists) {
+                    usernameFeedback.textContent = "Username already exists";
+                    usernameFeedback.className = "text-danger";
+                } else {
+                    usernameFeedback.textContent = "Username is available";
+                    usernameFeedback.className = "text-success";
+                }
+            })
+            .catch(error => {
+                console.error("Error checking username:", error);
+                usernameFeedback.style.display = "none";
+            });
+    }, 500); // Wait 500ms after user stops typing
 });
 
 // When the user clicks "Register as merchant", the merchant type is automatically selected

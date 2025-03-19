@@ -1,6 +1,20 @@
 from django.http import JsonResponse
 
 # Create your views here.
+def check_username(request):
+    if request.method == "GET":
+        username = request.GET.get("username")
+        if not username:
+            return JsonResponse({"error": "Username cannot be empty"}, status=400)
+        
+        # Check if username exists
+        exists = User.objects.filter(username=username).exists()
+        
+        return JsonResponse({
+            "exists": exists,
+            "message": "Username already exists" if exists else "Username is available"
+        })
+
 import random
 import time
 from datetime import datetime, timedelta
