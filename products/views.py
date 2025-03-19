@@ -102,20 +102,22 @@ def product_detail(request, product_id):
     # get review
     reviews = product.reviews.all()
 
-
+    """
     # handle review filter
     for review in reviews:
         review["rating"] = int(review["rating"])
         review["stars"] = range(review["rating"])
+    """
 
     if request.method == 'POST':
-        form = ReviewForm(request.POST)
+        form = ReviewForm(request.POST, request.FILES)
         if form.is_valid():
             review = form.save(commit=False)
             review.product = product
             review.user = request.user
             review.save()
-            return redirect('product_detail', product_id=product.id)
+            messages.success(request, "Your review has been submitted!")
+            return redirect('products:product_detail', product_id=product.id)
     else:
         form = ReviewForm()
 
