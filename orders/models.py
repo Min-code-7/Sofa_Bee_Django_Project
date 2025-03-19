@@ -4,12 +4,7 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
-
-<<<<<<< HEAD
 from products.models import Product
-
-=======
->>>>>>> origin/feature-orders
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -32,7 +27,6 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-<<<<<<< HEAD
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)  # 订单
     product_name = models.CharField(max_length=255)  # 商品名称
     quantity = models.PositiveIntegerField()  # 数量
@@ -41,12 +35,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.product_name} x {self.quantity}'
-=======
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product_name = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f"{self.product_name} (x{self.quantity})"
->>>>>>> origin/feature-orders
