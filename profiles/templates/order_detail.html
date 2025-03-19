@@ -14,25 +14,24 @@
                             <div class="col-md-6">
                                 <h6>Order Details</h6>
                                 <ul class="list-unstyled">
-                                    <li><strong>Order Number:</strong>{{ order_info.order_number }}</li>
+                                    <li><strong>Order Number: </strong>{{ order_info.order_number }}</li>
                                     <li><strong>Status: </strong>{{ order_info.status }}</li>
-                                    <li><strong>Pay Method: </strong>{{ order_info.payment_method }}</li>
-
+                                    <li><strong>Create at: </strong>{{ order_info.created_at }}</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
                                 <h6>Shipping Address</h6>
                                 <ul class="list-unstyled">
-                                    <li>
-                                        <strong>Address: </strong>
-                                        {% if order_info.address.detail_address %}
-                                            {{ order_info.address.detail_address }} {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
-                                        {% else %}
-                                            {{ order_info.address }}
-                                        {% endif %}
-                                    </li>
-                                    <li><strong>Create at: </strong>{{ order_info.created_at }}</li>
-                                    <li><strong>Paid at: </strong>{{ order_info.paid_at }}</li>
+                                    {% if order_info.address.receiver_name %}
+                                        <li><strong>Name: </strong>{{ order_info.address.receiver_name }}</li>
+                                        <li><strong>Phone Number: </strong>{{ order_info.address.receiver_phone }}</li>
+                                        <li>
+                                            <strong>Address: </strong>
+                                            {{ order_info.address.detail_address }}, {{ order_info.address.district }} {{ order_info.address.city }} {{ order_info.address.province }}
+                                        </li>
+                                    {% else %}
+                                        <li><strong>Address: </strong>{{ order_info.address }}</li>
+                                    {% endif %}
                                 </ul>
                             </div>
                         </div>
