@@ -1,5 +1,11 @@
 from django.db import models
+
+# Create your models here.
+from django.db import models
 from django.contrib.auth.models import User
+
+from products.models import Product
+
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -34,6 +40,7 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=255)  # 商品名称
     quantity = models.PositiveIntegerField()  # 数量
     price = models.DecimalField(max_digits=10, decimal_places=2)  # 单价
+    product = models.ForeignKey(Product, on_delete=models.CASCADE,null=True)
 
     def __str__(self):
         return f'{self.product_name} x {self.quantity}'

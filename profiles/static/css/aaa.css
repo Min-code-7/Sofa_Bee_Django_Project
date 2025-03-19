@@ -1,0 +1,19 @@
+.c1{
+    color:aqua;
+}
+.c2{
+
+    color: blue;
+}
+
+#c3{
+    color:brown;
+}
+input[type="text"]{
+    color:pink;
+}
+
+.vi[xx="123"]{
+    color:peru;
+    border:10px solid orange;
+}

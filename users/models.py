@@ -1,8 +1,11 @@
 from django.db import models
+
 # Create your models here.
+
 from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
+
     USER_TYPE_CHOICES = [
         ('regular', 'normal user'),
         ('merchant', 'merchant user'),

@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,7 +44,6 @@ INSTALLED_APPS = [
     'addresses',
     'profiles',
     'reviews',
-    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -63,7 +61,7 @@ ROOT_URLCONF = 'Sofa_Bee_Django_Project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,7 +69,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'cart.context_processors.cart_processor',
             ],
         },
     },
@@ -86,7 +83,7 @@ WSGI_APPLICATION = 'Sofa_Bee_Django_Project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -125,26 +122,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-
-#test pictures path
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.163.com'  
-EMAIL_PORT = 465  
-EMAIL_USE_TLS = False 
-EMAIL_USE_SSL = True  
-EMAIL_HOST_USER = 'itforpurchasing@163.com'  
-EMAIL_HOST_PASSWORD = 'JUGh78SjzvQXKwr4'  
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
