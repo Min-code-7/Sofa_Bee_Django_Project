@@ -7,7 +7,7 @@ from users.models import UserProfile
 # Create your views here.
 def modify_address(request, address_id):
     address = Address.objects.get(id=address_id)
-    consumer_id = address.consumer.user.id
+    consumer_id = address.user.id
     if request.method == 'POST':
         name = request.POST.get('name')
         phone = request.POST.get('phone')
@@ -16,7 +16,7 @@ def modify_address(request, address_id):
         district_1 = request.POST.get('district')
         detail = request.POST.get('detail')
 
-        address = Address.objects.update(receiver_name=name,
+        Address.objects.update(receiver_name=name,
                                          receiver_phone=phone,
                                          province=province_1,
                                          city=city_1,
@@ -26,7 +26,8 @@ def modify_address(request, address_id):
     return render(request, 'modify_address.html', {'address': address, 'consumer_id': consumer_id})
 
 
-def add_address(request, id):
+def add_address(request):
+    id = request.user.id
     if request.method == 'POST':
         userprofile = UserProfile.objects.get(user_id=id)
         name = request.POST.get('name')

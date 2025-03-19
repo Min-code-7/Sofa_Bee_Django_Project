@@ -18,41 +18,41 @@ from users.models import UserProfile
 
 
 # Create your views here.
-def profiles(request, id):
-    userProfile = UserProfile.objects.get(id=id)
+def profiles(request):
+    id=request.user.id
+    userProfile = UserProfile.objects.get(user_id=id)
     # if the account type is normal  user
-    if userProfile.user_type == "regular":
-        addresses = Address.objects.get(userProfile.user.id)
+    if userProfile.user_type == "regular" or userProfile.user_type == "normal user":
+        addresses = Address.objects.filter(consumer=userProfile)
         return render(request, 'profile.html', {'user': userProfile.user, 'addresses': addresses})
 
     # accout is merchant
-    user = userProfile.user.get(id=id)
-    addresses = Address.objects.filter(consumer_id=id, is_default=True)
-    return render(request, 'profile.html', {'user': user, 'addresses': addresses})
+    addresses = Address.objects.filter(consumer=userProfile, is_default=True)
+    return render(request, 'merchant_profile.html', {'user': userProfile.user, 'addresses': addresses})
 
 
-def modify(request, id):
-    userProfile = UserProfile.objects.get(id=id)
-    user = userProfile.user
+def modify(request):
+    id = request.user.id
+    user=request.user
     if request.method == 'POST':
         name = request.POST.get('name')
         if name is None:
-            name = user.name
+            name = user.username
         email = request.POST.get('email')
         if request.POST.get('new-email'):
             email = request.POST.get('new-email')
-        phone = request.POST.get('phone')
-        if phone is None:
-            phone = user.phone
+        password = request.POST.get('phone')
+        if password is None:
+            password = user.password
 
-        User.objects.filter(id=id).update(name=name, email=email, phone=phone)
+        User.objects.filter(id=id).update(name=name, email=email, password=password)
 
         return redirect('modify_profile', id=id)
 
     return render(request, 'modify.html', {'user': user})
 
 
-def send_email_captcha(request, id):
+def send_email_captcha(request):
     # ?email=xxx
     email = request.GET.get('email')
     if not email:
@@ -79,8 +79,9 @@ def compare_code(request):
             return JsonResponse({"code": 400, "message": "verification code is wrong！"})
 
 
-def history_order(request, id):
-    orders = Order.objects.filter(consumer_id=id)
+def history_order(request):
+    id = request.user.id
+    orders = Order.objects.filter(user_id=id)
 
     order_infos = []
 
@@ -132,14 +133,14 @@ def history_order(request, id):
     if order_number:
         filtered_order_infos = [
             order_info for order_info in order_infos
-            if str(order_info.order_id) == order_number
+            if str(order_info.order_number) == order_number
         ]
     else:
         filtered_order_infos = order_infos
     return render(request, "history_orders.html", {'id': id, 'orders': filtered_order_infos})
 
 
-def order_detail(request, id):
+def order_detail(request,id):
     # id获取order
     order = Order.objects.get(id=id)
 
