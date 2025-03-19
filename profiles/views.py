@@ -128,8 +128,9 @@ def compare_code(request):
             return JsonResponse({"code": 400, "message": "verification code is wrong！"})
 
 
-def history_order(request):
-    id = request.user.id
+def history_order(request, id=None):
+    if id is None:
+        id = request.user.id
     orders = Order.objects.filter(user_id=id)
 
     order_infos = []
@@ -164,8 +165,11 @@ def history_order(request):
                         # 尝试获取订单项详情
                         image = None
                         try:
-                            # 尝试获取产品图片
-                            image = item.product.image if hasattr(item, 'product') and item.product else None
+                            # 通过product_name查找对应的Product对象
+                            from products.models import Product
+                            product = Product.objects.filter(name=item.product_name).first()
+                            if product and product.image:
+                                image = product.image.url
                         except Exception:
                             # 如果获取图片失败，使用None
                             pass
@@ -214,6 +218,18 @@ def history_order(request):
     else:
         filtered_order_infos = order_infos
     return render(request, "history_orders.html", {'id': id, 'orders': filtered_order_infos})
+
+
+def delete_order(request, id):
+    """删除订单"""
+    try:
+        order = Order.objects.get(id=id, user=request.user)
+        order.delete()
+        messages.success(request, "订单已成功删除")
+    except Order.DoesNotExist:
+        messages.error(request, "订单不存在或您无权删除此订单")
+    
+    return redirect('history_order')
 
 
 def order_detail(request, id):
@@ -265,13 +281,16 @@ def order_detail(request, id):
             self.final_details = final_details
 
     order_items = OrderItem.objects.filter(order=order)  # 获取所有订单项
+    
+    # 通过product_name查找对应的Product对象
+    from products.models import Product
     products = []
-    # 获得所有商品
     for order_item in order_items:
         try:
-            product = order_item.product
-            products.append(product)
-        except Exception as e:
+            product = Product.objects.filter(name=order_item.product_name).first()
+            if product:
+                products.append(product)
+        except Exception:
             # 如果产品不存在或有其他问题，跳过这个订单项
             continue
     
@@ -309,14 +328,15 @@ def order_detail(request, id):
                         
                         try:
                             # 尝试获取订单项
-                            order_item = OrderItem.objects.get(order=order, product_id=product.id)
-                            unit_price = product.price
-                            quantity = order_item.quantity
-                            total_price = order_item.price * order_item.quantity
-                            
-                            final_detail = Final_detail(name, picture, unit_price, quantity, description, total_price)
-                            final_details.append(final_detail)
-                        except OrderItem.DoesNotExist:
+                            order_item = OrderItem.objects.filter(order=order, product_name=product.name).first()
+                            if order_item:
+                                unit_price = product.price
+                                quantity = order_item.quantity
+                                total_price = order_item.price * order_item.quantity
+                                
+                                final_detail = Final_detail(name, picture, unit_price, quantity, description, total_price)
+                                final_details.append(final_detail)
+                        except Exception:
                             # 如果订单项不存在，跳过
                             continue
                 except Exception:

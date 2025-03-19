@@ -28,7 +28,7 @@
 <div class="container" style="padding-top: 150px">
     <div class="row mb-4">
         <div class="col-md-7" >
-            <form class="form-inline" method="get" action="{% url 'history_order' id=id %}" >
+            <form class="form-inline" method="get" action="{% url 'history_order_with_id' id=id %}" >
                 <input class="form-control mr-sm-2" type="search" name="q" placeholder="input order id to search"
                        aria-label="Search">
                 <div style="padding-top:20px;"></div>
@@ -36,6 +36,7 @@
             </form>
         </div>
     </div>
+    {% if orders %}
     <div class="bd-example">
         <table class="table table-striped table-bordered">
             <thead>
@@ -70,12 +71,12 @@
                         <th scope="col" style="width:10%" class="no-border-right no-border-left"></th>
 
                         <th scope="col" style="width:10%" class="no-border-right no-border-left">
-                            <button type="button">
+                            <a href="{% url 'delete_order' id=order.order_id %}" class="btn btn-sm btn-danger" onclick="return confirm('确定要删除此订单吗？');">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                      class="bi bi-trash3-fill" viewBox="0 0 16 16">
                                     <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
                                 </svg>
-                            </button>
+                            </a>
                         </th>
                     </tr>
                     </thead>
@@ -87,18 +88,18 @@
                                 <span>{{ detail.product_name }}</span>
                             </td>
                             <td class="td_items"> {{ detail.shop_name }}</td>
-                            <td class="td_items">{{ order.order_time }}</td>
+                            <td class="td_items">{{ order.created_at }}</td>
                             <td class="td_items">{{ detail.item_price }}</td>
                             <td class="td_items">{{ detail.item_quantity }}</td>
                             <td class="td_items">{{ detail.price }}</td>
                             {% if forloop.first %}
-                                <td rowspan="{{ order_items|length }}">{{ order.order_status }}</td>
-                                <td class="td_items" rowspan="{{ order_items|length }}">
+                                <td rowspan="{{ order.details|length }}">{{ order.status }}</td>
+                                <td class="td_items" rowspan="{{ order.details|length }}">
                                     <nav aria-label="breadcrumb">
                                         <ol class="breadcrumb">
                                             <li class="breadcrumb-item"><a href="#">review</a></li>
                                             <li class="breadcrumb-item"><a
-                                                    href="{% url 'history_order_detail' id=id %}">details</a></li>
+                                                    href="{% url 'history_order_detail' id=order.order_id %}">details</a></li>
                                         </ol>
                                     </nav>
                                 </td>
@@ -112,6 +113,13 @@
         </div>
 
     {% endfor %}
+    {% else %}
+    <div class="alert alert-info text-center mt-5">
+        <h4>You have no order records.</h4>
+        <p>When you make a purchase, your orders will appear here.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-3">Continue Shopping</a>
+    </div>
+    {% endif %}
 
 </div>
 

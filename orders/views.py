@@ -2,6 +2,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.crypto import get_random_string
 from .models import Order, OrderItem
 from cart.models import Cart, CartItem
@@ -48,7 +49,6 @@ def create_order(request):
     return redirect('orders:order_detail', order_id=order.id)
 
 
-<<<<<<< HEAD
 @csrf_exempt
 def list_orders(request):
     """ 获取所有订单 """
@@ -138,7 +138,6 @@ def delete_order(request, order_number):
 
     return JsonResponse({"message": "仅支持 DELETE 请求"}, status=400, json_dumps_params={'ensure_ascii': False},
                         content_type="application/json; charset=utf-8")
-=======
 @login_required
 def confirm_receipt(request, order_id):
     """确认收货，订单状态改为完成"""
@@ -148,4 +147,3 @@ def confirm_receipt(request, order_id):
         order.save()
         return JsonResponse({'status': 'success', 'message': 'Order marked as completed.'})
     return JsonResponse({'status': 'error', 'message': 'Invalid order status.'}, status=400)
->>>>>>> origin/feature-orders

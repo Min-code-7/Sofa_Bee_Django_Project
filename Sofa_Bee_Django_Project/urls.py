@@ -27,14 +27,9 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('cart/', include('cart.urls', namespace='cart')),
     path('', home, name='home'),  
-<<<<<<< HEAD
     path('orders/', include('orders.urls')),
     path('profiles/', include('profiles.urls')),  # 引入 profiles app 的 urls.py
     path('addresses/', include('addresses.urls')),  # 引入 addresses app 的 urls.py
-=======
-    path('orders/', include('orders.urls')),  
-    path('accounts/', include('django.contrib.auth.urls')),  # 添加这行
->>>>>>> origin/feature-orders
 ]
 
 if settings.DEBUG:
