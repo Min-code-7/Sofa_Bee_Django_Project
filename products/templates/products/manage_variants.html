@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Product Variants - Sofa Bee{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>manage parameters: {{ product.name }}</h2>
+        <div>
+            <a href="{% url 'products:edit_product' product.id %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to edit product
+            </a>
+            <a href="{% url 'products:product_detail' product.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-eye"></i> View Product Details
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- left col -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Product parameter Group</h5>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addVariantModal">
+                        <i class="bi bi-plus-circle"></i> Add product parameter group
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if variants %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter group</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Default</th>
+                                        <th>Operate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for variant in variants %}
+                                        <tr>
+                                            <td>
+                                                {% for attr_value in variant.attribute_values.all %}
+                                                    <span class="badge bg-light text-dark me-1">{{ attr_value }}</span>
+                                                {% endfor %}
+                                            </td>
+                                            <td>£{{ variant.price }}</td>
+                                            <td>{{ variant.stock }}</td>
+                                            <td>
+                                                {% if variant.is_default %}
+                                                    <span class="badge bg-success"><i class="bi bi-check"></i> Yes</span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark">No</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                            onclick="deleteVariant({{ variant.id }})">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No parameter group has been created for this product. Please add parameter group.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- product details -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Product Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid mb-3">
+                            {% else %}
+                                <div class="bg-light text-center p-5 mb-3">No Image</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ product.name }}</h5>
+                            <p class="text-muted">{{ product.description|truncatechars:150 }}</p>
+                            <p><strong>Category:</strong> {{ product.category.name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- right col attribute -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Parameter type</h5>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addAttributeModal">
+                        <i class="bi bi-plus-circle"></i> Add Parameter Type
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if attributes %}
+                        <ul class="list-group">
+                            {% for attribute in attributes %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ attribute.name }}</h6>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" data-bs-target="#addAttributeValueModal"
+                                                    onclick="setAttributeId({{ attribute.id }})">
+                                                <i class="bi bi-plus-circle"></i> Add Value
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteAttribute({{ attribute.id }})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        {% for value in attribute.values.all %}
+                                            <span class="badge bg-light text-dark me-1 mb-1">
+                                                {{ value.value }}
+                                                <button type="button" class="btn-close btn-close-sm ms-1" 
+                                                        onclick="deleteAttributeValue({{ value.id }})" 
+                                                        style="font-size: 0.5rem;"></button>
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-info">
+                            No parameter type, add parameter type (e.g. "color", "size", etc.).
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addAttributeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Parameter Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Parameter Name</label>
+                        {{ attribute_form.name }}
+                        <div class="form-text">e.g. Color, Size, etc.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="add_attribute" class="btn btn-success">Add Parameter Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addAttributeValueModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Value</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Parameter Type</label>
+                        {{ attr_value_form.attribute }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Value</label>
+                        {{ attr_value_form.value }}
+                        <div class="form-text">e.g. White, 500g, etc.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="add_attr_value" class="btn btn-success">Add Value</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+    
+    
+<div class="modal fade" id="addVariantModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Parameter Group</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Parameter Value Group</label>
+                        <div class="border p-3 rounded">
+                            {{ variant_form.attribute_values }}
+                        </div>
+                        <div class="form-text">Choose parameter value</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Price (£)</label>
+                        {{ variant_form.price }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock</label>
+                        {{ variant_form.stock }}
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ variant_form.is_default }}
+                        <label class="form-check-label" for="{{ variant_form.is_default.id_for_label }}">
+                            Set Default
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="add_variant" class="btn btn-success">Add Parameter Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setAttributeId(attributeId) {
+        document.querySelector('#addAttributeValueModal select[name="attribute"]').value = attributeId;
+    }
+    
+    function deleteVariant(variantId) {
+        if (confirm('Are you sure you want to remove this parameter combination? This action is irrevocable.')) {
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(`/products/variant/${variantId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message || 'An error occurred while deleting parameter groups');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting parameter groups');
+            });
+        }
+    }
+    
+
+    function deleteAttribute(attributeId) {
+        if (confirm('Are you sure you want to remove this parameter type? This operation removes all associated parameter values and variants at the same time!')) {
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(`/products/attribute/${attributeId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message || 'An error occurred while deleting the parameter type');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the parameter type');
+            });
+        }
+    }
+    
+
+    function deleteAttributeValue(valueId) {
+        if (confirm('Are you sure you want to remove this parameter value? This action affects variants that use this value!')) {
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(`/products/attribute_value/${valueId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error deleting parameter value');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting parameter value');
+            });
+        }
+    }
+    
+    // 获取CSRF令牌
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

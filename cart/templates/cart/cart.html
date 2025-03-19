@@ -118,7 +118,7 @@
                             </label>
                         </div>
                         <div>
-                            <span class="h5 me-3">Total: <strong id="total-price">${{ total_price }}</strong></span>
+                            <span class="h5 me-3">Total: <strong id="total-price">£{{ total_price }}</strong></span>
                             <button type="button" id="checkout-btn" class="btn btn-primary btn-lg">CHECKOUT</button>
                         </div>
                     </div>
@@ -198,7 +198,7 @@
                     if (data.status === 'success') {
                         document.querySelector(`.item-price[data-item="${itemId}"]`).textContent = 
                             '$' + data.item_price.toFixed(2);
-                        document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                        document.getElementById('total-price').textContent = '£' + data.cart_price.toFixed(2);
                     }
                 });
             });
@@ -221,7 +221,7 @@
                         if (data.status === 'success') {
                             // Remove the item row
                             this.closest('tr').remove();
-                            document.getElementById('total-price').textContent = '$' + data.cart_price.toFixed(2);
+                            document.getElementById('total-price').textContent = '£' + data.cart_price.toFixed(2);
                             
                             // If no items left, refresh the page
                             if (data.cart_total === 0) {
@@ -262,7 +262,7 @@
                 const price = parseFloat(row.querySelector('.item-price').getAttribute('data-price'));
                 total += quantity * price;
             });
-            document.getElementById('total-price').textContent = '$' + total.toFixed(2);
+            document.getElementById('total-price').textContent = '£' + total.toFixed(2);
         }
     });
 </script>

@@ -34,6 +34,9 @@ class Category(models.Model):
         for category in default_categories:
             Category.objects.get_or_create(name=category["name"], defaults={"description": category["description"]})
 
+
+
+# raw product form, still need keep
 class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -54,3 +57,49 @@ class Product(models.Model):
             self.save()
             return True
         return False
+
+
+# products may have different character
+class ProductAttribute(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="attributes")
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name}"
+
+
+class ProductAttributeValue(models.Model):
+    attribute = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE, related_name="values")
+    value = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.attribute.name}: {self.value}"
+
+
+# include new attribute product
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
+    attribute_values = models.ManyToManyField(ProductAttributeValue)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField(default=0)
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        attributes = ", ".join([str(attr) for attr in self.attribute_values.all()])
+        return f"{self.product.name} - {attributes}"
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            ProductVariant.objects.filter(
+                product=self.product,
+                is_default=True
+            ).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    def reduce_stock(self, quantity):
+        if self.stock >= quantity:
+            self.stock -= quantity
+            self.save()
+            return True
+        return False
+
