@@ -1,41 +1,38 @@
+# orders/models.py
 from django.db import models
 
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
 
+<<<<<<< HEAD
 from products.models import Product
 
+=======
+>>>>>>> origin/feature-orders
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending', '待支付'),
-        ('paid', '已支付'),
-        ('shipped', '已发货'),
-        ('completed', '已完成'),
-        ('canceled', '已取消'),
+        ('pending', 'Pending Payment'),
+        ('paid', 'Paid'),
+        ('shipped', 'Shipped'),
+        ('completed', 'Completed'),
     ]
 
-    PAYMENT_CHOICES = [
-        ('credit_card', '信用卡'),
-        ('paypal', 'PayPal'),
-        ('wechat', '微信支付'),
-        ('alipay', '支付宝'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 关联用户
-    order_number = models.CharField(max_length=20, unique=True)  # 订单号
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)  # 总金额
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')  # 订单状态
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='credit_card')  # 支付方式
-    created_at = models.DateTimeField(auto_now_add=True)  # 下单时间
-    paid_at = models.DateTimeField(null=True, blank=True)  # 支付时间
-    shipping_address = models.CharField(max_length=255, null=True, blank=True)  # 配送地址
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    order_number = models.CharField(max_length=20, unique=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_at = models.DateTimeField(null=True, blank=True)  # 记录支付时间
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    shipping_address = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'订单 {self.order_number} - 状态: {self.status}'
+        return f"Order {self.order_number} - {self.user.username}"
+
 
 class OrderItem(models.Model):
+<<<<<<< HEAD
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)  # 订单
     product_name = models.CharField(max_length=255)  # 商品名称
     quantity = models.PositiveIntegerField()  # 数量
@@ -44,3 +41,12 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f'{self.product_name} x {self.quantity}'
+=======
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product_name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.product_name} (x{self.quantity})"
+>>>>>>> origin/feature-orders

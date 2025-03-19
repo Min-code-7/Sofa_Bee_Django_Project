@@ -142,6 +142,7 @@ def user_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'users/login.html', {'form': form})
+    # return render(request, 'user:login.html', {'form': form})
 
 def user_logout(request):
     logout(request)

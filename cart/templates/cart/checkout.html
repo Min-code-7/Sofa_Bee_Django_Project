@@ -41,9 +41,9 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>${{ item.product.price }}</td>
-                                    <td>{{ item.quantity }}</td>
-                                    <td class="text-end">${{ item.get_price }}</td>
+                                    <td>${{ item.product_price|floatformat:2 }}</td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end">${{ item.get_price }}</td> <!-- 显示总价 -->
                                 </tr>
                                 {% endfor %}
                             </tbody>

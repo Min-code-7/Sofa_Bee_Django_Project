@@ -19,6 +19,7 @@ from django.urls import path, include
 from .views import home
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,9 +27,14 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('cart/', include('cart.urls', namespace='cart')),
     path('', home, name='home'),  
+<<<<<<< HEAD
     path('orders/', include('orders.urls')),
     path('profiles/', include('profiles.urls')),  # 引入 profiles app 的 urls.py
     path('addresses/', include('addresses.urls')),  # 引入 addresses app 的 urls.py
+=======
+    path('orders/', include('orders.urls')),  
+    path('accounts/', include('django.contrib.auth.urls')),  # 添加这行
+>>>>>>> origin/feature-orders
 ]
 
 if settings.DEBUG:
