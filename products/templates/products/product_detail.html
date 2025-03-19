@@ -41,7 +41,6 @@
                 <!-- keywords -->
                 <input type="text" id="filter-keyword" placeholder="Search reviews...">
 
-
                 <!-- with images -->
                 <div class="form-check">
                     <input type="checkbox" class="form-check-input" id="filter-images">
@@ -62,9 +61,9 @@
             <div id="reviews-list">
                 {% for review in reviews %}
                     <div class="review-card p-3 border rounded mb-3">
-                        <strong>{{ review.user }}</strong> rated: 
+                        <strong>{{ review.user.username }}</strong> rated: 
                         <span class="rating-stars">
-                            {% for _ in review.stars %}
+                            {% for _ in review.get_stars %}
                                 ⭐
                             {% endfor %}
                         </span>
@@ -72,7 +71,7 @@
                         <small>{{ review.created_at }}</small>
                         {% if review.image %}
                             <div class="mt-2">
-                                <img src="{{ review.image }}" class="img-thumbnail" width="100">
+                                <img src="{{ review.image.url }}" class="img-thumbnail" width="100">
                             </div>
                         {% endif %}
                     </div>
@@ -90,7 +89,9 @@
         <div class="col-md-12">
             {% if user.is_authenticated %}
                 <h4>Write a Review</h4>
-                <form id="review-form">
+                
+                <form id="review-form" method="POST" action="/products/reviews/add/{{ product.id }}/" enctype="multipart/form-data">
+                    {% csrf_token %}
                     <div class="mb-3">
                         <label for="rating" class="form-label">Rating:</label>
                         <select id="rating" class="form-select" name="rating" required>
@@ -105,10 +106,14 @@
                         <label for="comment" class="form-label">Comment:</label>
                         <textarea id="comment" class="form-control" name="comment" required></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Image (optional):</label>
+                        <input type="file" id="image" class="form-control" name="image">
+                    </div>
                     <button type="submit" class="btn btn-success">Submit Review</button>
                 </form>
             {% else %}
-                <p><a href="{% url 'login' %}">Log in</a> to write a review</p>
+                <p><a href="{% url 'users:login' %}">Log in</a> to write a review</p>
             {% endif %}
         </div>
     </div>
@@ -125,10 +130,11 @@ function filterReviews() {
     console.log("Sending rating:", rating, "Type", typeof rating);
 
     $.ajax({
-        url: "{% url 'products:filter_reviews' product.id %}", 
+        
+        url: "/products/reviews/filter/{{ product.id }}/", 
         data: {
             rating: rating ? parseInt(rating, 10) : null,
-            keyword: $("#filter-keyword").val(),
+            keyword: keyword,
             images: onlyImages
         },
         
@@ -156,6 +162,52 @@ function filterReviews() {
                 });
             }
         }
+    });
+}
+
+function addToCart(productId) {
+    console.log("Adding product to cart:", productId);
+    
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    const csrftoken = getCookie('csrftoken');
+    
+    fetch(`/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => {
+        console.log("Response status:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Response data:", data);
+        if (data.status === 'success') {
+            alert(data.message);
+        } else {
+            alert(data.message || 'Error adding to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while adding to cart');
     });
 }
 </script>

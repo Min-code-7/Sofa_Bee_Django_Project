@@ -6,15 +6,39 @@
 <div class="container mt-4">
     <h2 class="text-center mb-4">Products List</h2>
 
-    <!-- Search Bar -->
+    <!-- Search and Add Product Bar -->
     <div class="row mb-3">
-        <div class="col-md-9">
+        <div class="{% if user.is_authenticated and user.userprofile.user_type == 'merchant' %}col-md-7{% else %}col-md-9{% endif %}">
             <input type="text" id="search-input" class="form-control" placeholder="Please input product name to search...">
         </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" onclick="searchProducts()">Search</button>
+        </div>
+        {% if user.is_authenticated and user.userprofile.user_type == 'merchant' %}
         <div class="col-md-3">
-            <button class="btn btn-primary" onclick="searchProducts()">Search</button>
+            <a href="{% url 'products:add_product' %}" class="btn btn-success w-100">Add New Product</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Categories Filter -->
+    {% if categories %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary {% if not selected_category %}active{% endif %}">
+                    All
+                </a>
+                {% for category in categories %}
+                <a href="{% url 'products:product_list' %}?category={{ category.name }}" 
+                   class="btn btn-outline-secondary {% if selected_category == category.name %}active{% endif %}">
+                    {{ category.name }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- productList -->
     <div class="row" id="product-list">
@@ -38,8 +62,21 @@
             </div>
         </div>
         {% empty %}
-        <div class="col text-center">
-            <p class="text-muted">No products available</p>
+        <div class="col-12 text-center py-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">No products available yet</h5>
+                    
+                    {% if user.is_authenticated and user.userprofile.user_type == 'merchant' %}
+                    <p class="card-text">As a merchant, you can add products to your store.</p>
+                    <a href="{% url 'products:add_product' %}" class="btn btn-lg btn-success mt-3">
+                        <i class="fas fa-plus-circle"></i> Add Your First Product
+                    </a>
+                    {% else %}
+                    <p class="card-text">Products will be available soon. Please check back later!</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -58,7 +95,19 @@
                 $("#product-list").html("");
 
                 if (data.products.length === 0) {
-                    $("#product-list").html("<p class='text-muted text-center'>No matching items found.</p>");
+                    $("#product-list").html(`
+                        <div class="col-12 text-center py-5">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted">No matching products found</h5>
+                                    <p class="card-text">Try different search terms or browse categories.</p>
+                                    <button class="btn btn-outline-secondary mt-3" onclick="window.location.reload()">
+                                        Reset Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
                 } else {
                     $.each(data.products, function(index, product) {
                         var imageHtml = product.image ? 
@@ -87,23 +136,21 @@
         });
     }
     
-  
-	
-	function addToCart(productId) {
-		console.log("Adding product to cart:", productId);
+    function addToCart(productId) {
+        console.log("Adding product to cart:", productId);
     
-		// 从cookie获取CSRF令牌
-		function getCookie(name) {
-			let cookieValue = null;
-			if (document.cookie && document.cookie !== '') {
-				const cookies = document.cookie.split(';');
-				for (let i = 0; i < cookies.length; i++) {
-					const cookie = cookies[i].trim();
-					if (cookie.substring(0, name.length + 1) === (name + '=')) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
-				}
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
             }
             return cookieValue;
         }

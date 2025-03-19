@@ -94,7 +94,8 @@ def product_detail(request, product_id):
         return render(request, "404.html", {"message": "No Product matches the given query."}, status=404)
 
     # get review
-    reviews = REVIEWS.get(product_id, [])
+    reviews = product.reviews.all()
+
 
     # handle review filter
     for review in reviews:

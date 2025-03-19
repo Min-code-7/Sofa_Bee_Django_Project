@@ -32,9 +32,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'products:product_list' %}">My Online Shop</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'products:add_product' %}">Add Product</a></li>
                     
                     {% if user.is_authenticated %}
+                        {% if user.userprofile.user_type == 'merchant' %}
+                        <!-- 只对商家用户显示添加商品链接 -->
+                        <li class="nav-item"><a class="nav-link" href="{% url 'products:add_product' %}">Add Product</a></li>
+                        {% endif %}
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'cart:cart_detail' %}">
                                 <i class="bi bi-cart"></i> Cart
@@ -43,7 +47,25 @@
                                 {% endif %}
                             </a>
                         </li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'users:logout' %}">Log Out</a></li>
+                        
+                        <!-- 显示用户名和下拉菜单 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                              data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                {% if user.userprofile.user_type == 'merchant' %}
+                                    <li><a class="dropdown-item" href="{% url 'products:add_product' %}">Add New Product</a></li>
+                                    <li><a class="dropdown-item" href="#">Manage Products</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="#">My Profile</a></li>
+                                <li><a class="dropdown-item" href="#">My Orders</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'users:logout' %}">Log Out</a></li>
+                            </ul>
+                        </li>
                     {% else %}
                         <li class="nav-item"><a class="btn btn-primary" href="{% url 'users:login' %}">Log In</a></li>
                     {% endif %}
