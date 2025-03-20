@@ -65,16 +65,30 @@
                                                 </div>
                                             </td>
                                             <td class="align-middle" style="width: 15%;">
-                                                {% if item.product.image %}
+                                                {% if item.product_image %}
+                                                <img src="{{ item.product_image }}" alt="{{ item.product_name|default:'Product' }}" class="img-thumbnail" style="max-width: 100px;">
+                                                {% elif item.product and item.product.image %}
                                                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail" style="max-width: 100px;">
                                                 {% else %}
                                                 <div class="bg-light text-center py-4" style="width: 100px;">No Image</div>
                                                 {% endif %}
                                             </td>
                                             <td class="align-middle" style="width: 30%;">
-                                                <h5>{{ item.product.name }}</h5>
+                                                <h5>
+                                                    {% if item.product_name %}
+                                                        {{ item.product_name }}
+                                                    {% elif item.product and item.product.name %}
+                                                        {{ item.product.name }}
+                                                    {% else %}
+                                                        Product
+                                                    {% endif %}
+                                                </h5>
                                                 <p class="text-muted small">
-                                                    {{ item.product.category.name }}
+                                                {% if item.product and item.product.category %}
+                                                        {{ item.product.category.name }}
+                                                {% else %}
+                                                        Product
+                                                {% endif %}
                                                 </p>
                                             </td>
                                             <td class="align-middle text-center" style="width: 20%;">
@@ -83,15 +97,19 @@
                                                     <input type="number" class="form-control text-center quantity-input" 
                                                            name="quantity-{{ item.id }}" 
                                                            min="1" 
-                                                           max="{{ item.product.stock }}"
+                                                           max="{% if item.product %}{{ item.product.stock }}{% else %}99{% endif %}"
                                                            value="{{ item.quantity }}" 
                                                            data-item="{{ item.id }}">
                                                     <button class="btn btn-outline-secondary quantity-btn" type="button" data-action="increase" data-item="{{ item.id }}">+</button>
                                                 </div>
-                                                <small class="text-muted">Stock: {{ item.product.stock }}</small>
+                                                <small class="text-muted">
+                                                    {% if item.product %}
+                                                        Stock: {{ item.product.stock }}
+                                                    {% endif %}
+                                                </small>
                                             </td>
                                             <td class="align-middle text-end" style="width: 15%;">
-                                                <strong class="item-price" data-price="{{ item.product.price }}" data-item="{{ item.id }}">
+                                                <strong class="item-price" data-price="{% if item.product_price %}{{ item.product_price }}{% elif item.product and item.product.price %}{{ item.product.price }}{% else %}0{% endif %}" data-item="{{ item.id }}">
                                                     ${{ item.get_price }}
                                                 </strong>
                                             </td>

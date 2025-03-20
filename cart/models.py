@@ -23,36 +23,35 @@ class Cart(models.Model):
         return f"Cart for {self.user.username}"
 
 class CartItem(models.Model):
-
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    # 恢复product字段，但设置为null=True, blank=True
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    # 恢复variant字段，但设置为null=True, blank=True
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True, blank=True)
+    product_id_test = models.IntegerField(default=0)  # 数据库中的字段
     quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)
-
-    # new field
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # 这些字段已经存在于数据库中
+    product_name = models.CharField(max_length=255, null=True, blank=True)
+    product_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    product_image = models.CharField(max_length=255, null=True, blank=True)
 
     def get_price(self):
-        # compile old product models
-        if self.product_price:
+        # First check if we have a stored price
+        if self.product_price is not None:
             return self.product_price * self.quantity
 
-        # variant may have different price
+        # Then check variant price
         if self.variant:
             return self.variant.price * self.quantity
 
+        # Finally check product price
         if self.product:
             return self.product.price * self.quantity
 
         return 0
 
     class Meta:
-        # uniq confirm between products and variant
-        constraints = [
-            models.UniqueConstraint(
-                fields=['cart', 'product', 'variant'],
-                name='unique_product_variant_in_cart',
-                condition=models.Q(product__isnull=False)
-            )
-        ]
+        # 暂时移除约束，避免使用product_id字段
+        pass
