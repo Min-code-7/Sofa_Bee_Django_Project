@@ -14,7 +14,7 @@
         <div class="col-md-7">
             <h2>{{ product.name }}</h2>
             <p>{{ product.description }}</p>
-            
+
             <!-- Product variants selection -->
             {% if has_variants %}
                 <div id="variant-selection" class="mb-3">
@@ -23,8 +23,8 @@
                             <label class="form-label"><strong>{{ attribute.name }}:</strong></label>
                             <div class="btn-group attribute-options" role="group" data-attribute-id="{{ attribute.id }}">
                                 {% for value in attribute.values %}
-                                    <input type="radio" class="btn-check attribute-value" name="attr_{{ attribute.id }}" 
-                                           id="attr_{{ attribute.id }}_{{ value.id }}" value="{{ value.id }}" 
+                                    <input type="radio" class="btn-check attribute-value" name="attr_{{ attribute.id }}"
+                                           id="attr_{{ attribute.id }}_{{ value.id }}" value="{{ value.id }}"
                                            autocomplete="off" {% if forloop.first %}checked{% endif %}>
                                     <label class="btn btn-outline-primary" for="attr_{{ attribute.id }}_{{ value.id }}">{{ value.value }}</label>
                                 {% endfor %}
@@ -32,15 +32,15 @@
                         </div>
                     {% endfor %}
                 </div>
-                
+
                 <p class="text-primary"><strong>Price: £<span id="variant-price">
                     {% if default_variant %}{{ default_variant.price }}{% else %}{{ product.price }}{% endif %}
                 </span></strong></p>
-                
+
                 <p><strong>Stock:</strong> <span id="variant-stock">
                     {% if default_variant %}{{ default_variant.stock }}{% else %}{{ product.stock }}{% endif %}
                 </span> units available</p>
-                
+
                 <button class="btn btn-success" id="add-to-cart-btn">Add to Cart</button>
             {% else %}
                 <p class="text-primary"><strong>Price: £{{ product.price }}</strong></p>
@@ -91,14 +91,14 @@
             <div id="reviews-list">
                 {% for review in reviews %}
                     <div class="review-card p-3 border rounded mb-3">
-                        <strong>{{ review.user.username }}</strong> rated: 
+                        <strong>{{ review.user.username }}</strong> rated:
                         <span class="rating-stars">
                             {% for _ in review.get_stars %}
                                 ⭐
                             {% endfor %}
                         </span>
                         <p>{{ review.comment }}</p>
-                        <small>{{ review.created_at }}</small>
+                        <small>{{ review.created_at|date:"Y-m-d H:i:s" }}</small>
                         {% if review.image %}
                             <div class="mt-2">
                                 <img src="{{ review.image.url }}" class="img-thumbnail" width="100">
@@ -138,7 +138,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="image" class="form-label">Image (optional):</label>
-                            <input type="file" id="image" class="form-control" name="image">
+                            <input type="file" id="image" class="form-control" name="image" lang="en">
                         </div>
                         <button type="submit" class="btn btn-success">Submit Review</button>
                     </form>
@@ -153,8 +153,8 @@
         </div>
     </div>
 </div>
-    
-<!-- AJAX implement filter -->    
+
+<!-- AJAX implement filter -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 {% if has_variants %}
@@ -166,13 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const addToCartBtn = document.getElementById('add-to-cart-btn');
     const variantPriceEl = document.getElementById('variant-price');
     const variantStockEl = document.getElementById('variant-stock');
-    
+
     // Store the selected variant ID
     let selectedVariantId = null;
-    
+
     // Initialize with default variant
     updateSelectedVariant();
-    
+
     // Add event listeners to all attribute options
     attributeGroups.forEach(group => {
         const radioButtons = group.querySelectorAll('.attribute-value');
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
             radio.addEventListener('change', updateSelectedVariant);
         });
     });
-    
+
     // Handle the Add to Cart button click
     if (addToCartBtn) {
         addToCartBtn.addEventListener('click', function() {
@@ -191,11 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Function to update the selected variant based on selected options
     function updateSelectedVariant() {
         if (!variantData || variantData.length === 0) return;
-        
+
         // Get all selected attribute values
         const selectedAttributeValues = [];
         attributeGroups.forEach(group => {
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedAttributeValues.push(parseInt(selectedRadio.value));
             }
         });
-        
+
         // Find the matching variant
         for (const variant of variantData) {
             // Check if all selected attributes match this variant
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                     }
                 }
-                
+
                 if (allMatch) {
                     // Update the variant ID, price, and stock
                     selectedVariantId = variant.id;
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        
+
         // If no match found, use the default variant
         const defaultVariant = variantData.find(v => v.is_default) || variantData[0];
         if (defaultVariant) {
@@ -237,13 +237,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (variantStockEl) variantStockEl.textContent = defaultVariant.stock;
         }
     }
-    
+
     // Function to add a product variant to cart
     function addToCartWithVariant(productId, variantId) {
         console.log("Adding product variant to cart:", productId, variantId);
-        
+
         const csrftoken = getCookie('csrftoken');
-        
+
         fetch(`/cart/add/${productId}/`, {
             method: 'POST',
             headers: {
@@ -276,11 +276,11 @@ function filterReviews() {
     let rating = $("#filter-rating").val();
     let keyword = $("#filter-keyword").val();
     let onlyImages = $("#filter-images").prop("checked");
-    
+
     console.log("Sending rating:", rating, "Type", typeof rating);
 
     $.ajax({
-        url: "/products/reviews/filter/{{ product.id }}/", 
+        url: "/products/reviews/filter/{{ product.id }}/",
         data: {
             rating: rating ? parseInt(rating, 10) : null,
             keyword: keyword,
@@ -289,7 +289,7 @@ function filterReviews() {
         dataType: "json",
         success: function(response) {
             console.log("Filtered Reviews:", response.reviews);
-            
+
             $("#reviews-list").html("");
             if (response.reviews.length === 0) {
                 $("#reviews-list").html("<p>No matching reviews.</p>");
@@ -315,7 +315,7 @@ function filterReviews() {
 
 function addToCart(productId) {
     console.log("Adding product to cart:", productId);
-    
+
     // Get CSRF token from cookie
     function getCookie(name) {
         let cookieValue = null;
@@ -331,9 +331,9 @@ function addToCart(productId) {
         }
         return cookieValue;
     }
-    
+
     const csrftoken = getCookie('csrftoken');
-    
+
     fetch(`/cart/add/${productId}/`, {
         method: 'POST',
         headers: {
