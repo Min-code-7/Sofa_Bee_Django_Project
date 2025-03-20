@@ -1,0 +1,24 @@
+/* Product list page styles */
+.product-image-container {
+    width: 100%;
+    height: 300px !important; /* Increased height with !important */
+    overflow: hidden;
+    position: relative;
+    background-color: #f8f9fa;
+}
+
+.product-image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100% !important; /* Force height with !important */
+    object-fit: contain !important; /* Changed to contain to show full image */
+    object-position: center;
+    transition: transform 0.3s ease;
+    padding: 10px; /* Added padding to prevent image from touching edges */
+}
+
+.product-image-container:hover img {
+    transform: scale(1.05);
+}

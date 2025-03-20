@@ -1,4 +1,5 @@
-from django.http import HttpResponse
+from django.shortcuts import redirect
 
 def home(request):
-    return HttpResponse("<h1>Welcome to Sofa Bee Order Management System!</h1>")
+    # Redirect to products page
+    return redirect('products:product_list')
