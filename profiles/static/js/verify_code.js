@@ -1,5 +1,5 @@
 $(function() {
-    // 定义绑定验证按钮点击事件的函数
+    // Define function to bind verification button click event
     function bindVerifyCaptchaBtnClick() {
         $("#compare-btn").click(function (event) {
             let $this = $(this);
@@ -7,7 +7,7 @@ $(function() {
             let captcha = $("#captcha").val();
 
 
-            // 发送验证请求
+            // Send verification request
             $.ajax({
                 url: "{% url 'verify' %}",
                 method: 'GET',
@@ -30,7 +30,7 @@ $(function() {
                 error: function(error) {
 
                     console.log(error);
-                    alert("验证请求失败，请重试！");
+                    alert("Verification request failed, please try again!");
                 }
             });
         });

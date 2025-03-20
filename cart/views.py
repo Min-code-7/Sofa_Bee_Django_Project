@@ -32,13 +32,13 @@ def cart_detail(request):
     
     # Handle search query
     query = request.GET.get('q', '')
-    if query and False:  # 暂时禁用搜索功能
+    if query and False:  # Temporarily disable search function
         cart_items = cart_items.filter(
             Q(product__name__icontains=query) |
             Q(product__description__icontains=query)
         )
     
-    # Group by seller (shop) - 简化处理，不再按卖家分组
+    # Group by seller (shop) - Simplified processing, no longer grouped by seller
     shops_items = {"All Items": []}
     for item in cart_items:
         shops_items["All Items"].append(item)
@@ -353,17 +353,17 @@ def cart_search(request):
     query = request.GET.get('q', '')
     cart = get_cart(request)
     
-    # 简化搜索，暂时不使用过滤
+    # Simplified search, not using filters for now
     items = cart.items.all()
     
     items_data = []
     for item in items:
-        # 使用product_name和product_price字段，如果存在的话
+        # Use product_name and product_price fields if they exist
         name = item.product_name if hasattr(item, 'product_name') and item.product_name else "Product"
         price = float(item.product_price) if hasattr(item, 'product_price') and item.product_price else 0
         image = item.product_image if hasattr(item, 'product_image') and item.product_image else None
         
-        # 如果有product关系，则使用product的属性作为备选
+        # If there's a product relationship, use product attributes as fallback
         if hasattr(item, 'product') and item.product:
             if not name:
                 name = item.product.name

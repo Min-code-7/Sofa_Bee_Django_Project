@@ -28,8 +28,8 @@ urlpatterns = [
     path('cart/', include('cart.urls', namespace='cart')),
     path('', home, name='home'),  
     path('orders/', include('orders.urls')),
-    path('profiles/', include('profiles.urls')),  # 引入 profiles app 的 urls.py
-    path('addresses/', include('addresses.urls')),  # 引入 addresses app 的 urls.py
+    path('profiles/', include('profiles.urls')),  # Include urls.py from profiles app
+    path('addresses/', include('addresses.urls')),  # Include urls.py from addresses app
 ]
 
 if settings.DEBUG:

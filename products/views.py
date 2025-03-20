@@ -445,7 +445,7 @@ def delete_variant(request, variant_id):
             other_variant.is_default = True
             other_variant.save()
 
-    return JsonResponse({"status": "success", "message": "变体已删除"})
+    return JsonResponse({"status": "success", "message": "Variant has been deleted"})
 
 
 @login_required
@@ -474,7 +474,7 @@ def delete_attribute(request, attribute_id):
         return JsonResponse({"status": "error", "message": "You do not have permission to remove this attribute."})
 
     try:
-        # 删除属性会自动删除关联的属性值和变体中的引用（通过CASCADE和M2M关系）
+        # Deleting an attribute will automatically delete associated attribute values and references in variants (through CASCADE and M2M relationships)
         attribute.delete()
         return JsonResponse({"status": "success", "message": "Attribute removed"})
     except Exception as e:

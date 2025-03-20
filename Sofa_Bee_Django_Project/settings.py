@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-^kk5h-o(yv=(q@)nc^#8+_at@+ref6h51j_7wa!#hms!yppc_@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'users',
     'products',
     'cart',
-    'profiles',  # 移到orders之前，这样orders可以使用profiles的模板标签
+    'profiles',  # Moved before orders so that orders can use profiles' template tags
     'orders',
     'addresses',
     'reviews',
@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'Sofa_Bee_Django_Project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),  # 转换为字符串以解决Path对象问题
+        'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
     }
 }
 

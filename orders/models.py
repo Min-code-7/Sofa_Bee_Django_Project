@@ -25,7 +25,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     order_number = models.CharField(max_length=20, unique=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    paid_at = models.DateTimeField(null=True, blank=True)  # 记录支付时间
+    paid_at = models.DateTimeField(null=True, blank=True)  # Record payment time
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='credit_card')
     shipping_address = models.TextField(null=True, blank=True)
@@ -36,11 +36,11 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)  # 订单
-    product_name = models.CharField(max_length=255)  # 商品名称
-    quantity = models.PositiveIntegerField()  # 数量
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # 单价
-    # 移除product外键字段，因为数据库表中没有这个列
+    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)  # Order
+    product_name = models.CharField(max_length=255)  # Product name
+    quantity = models.PositiveIntegerField()  # Quantity
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # Unit price
+    # Removed product foreign key field because it doesn't exist in the database table
 
     def __str__(self):
         return f'{self.product_name} x {self.quantity}'

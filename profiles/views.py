@@ -19,30 +19,30 @@ def profiles(request, id=None):
         id = request.user.id
     
     try:
-        # 尝试获取用户资料
+        # Try to get user profile
         userProfile = UserProfile.objects.get(user_id=id)
         
-        # 如果是普通用户
+        # If regular user
         if userProfile.user_type == "regular" or userProfile.user_type == "normal user":
             addresses = Address.objects.filter(user=request.user)
             return render(request, 'profile.html', {'user': userProfile.user, 'addresses': addresses})
 
-        # 如果是商家用户
+        # If merchant user
         addresses = Address.objects.filter(user=request.user, is_default=True)
         return render(request, 'merchant_profile.html', {'user': userProfile.user, 'addresses': addresses})
     
     except UserProfile.DoesNotExist:
-        # 如果用户资料不存在，创建一个新的
+        # If user profile doesn't exist, create a new one
         if request.user.is_authenticated:
-            # 为当前登录用户创建资料
+            # Create profile for current logged in user
             userProfile = UserProfile.objects.create(
                 user=request.user,
-                user_type='regular'  # 默认为普通用户
+                user_type='regular'  # Default to regular user
             )
             addresses = []
             return render(request, 'profile.html', {'user': request.user, 'addresses': addresses})
         else:
-            # 如果用户未登录，重定向到登录页面
+            # If user is not logged in, redirect to login page
             from django.shortcuts import redirect
             return redirect('users:login')
 
@@ -59,19 +59,19 @@ def modify(request):
             email = request.POST.get('new-email')
         phone = request.POST.get('phone')
         
-        # 更新用户信息
+        # Update user information
         user.username = username
         user.email = email
         
-        # 处理密码修改
+        # Handle password change
         current_password = request.POST.get('current-password')
         new_password = request.POST.get('new-password')
         confirm_password = request.POST.get('confirm-password')
         
         if current_password and new_password and confirm_password:
-            # 验证当前密码
+            # Verify current password
             if user.check_password(current_password):
-                # 验证新密码和确认密码是否匹配
+                # Verify new password and confirmation match
                 if new_password == confirm_password:
                     user.set_password(new_password)
                     messages.success(request, "Password updated successfully.")
@@ -82,21 +82,21 @@ def modify(request):
         
         user.save()
         
-        # 更新用户资料中的电话号码
+        # Update phone number in user profile
         if phone:
             try:
                 userprofile = UserProfile.objects.get(user=user)
             except UserProfile.DoesNotExist:
-                # 如果用户资料不存在，创建一个新的
+                # If user profile doesn't exist, create a new one
                 userprofile = UserProfile.objects.create(
                     user=user,
-                    user_type='regular'  # 默认为普通用户
+                    user_type='regular'  # Default to regular user
                 )
             
             userprofile.phone_number = phone
             userprofile.save()
 
-        # 修改重定向，确保传递用户ID
+        # Modify redirect to ensure user ID is passed
         return redirect('profiles', id=user.id)
 
     return render(request, 'modify.html', {'user': user})
@@ -106,9 +106,9 @@ def send_email_captcha(request):
     # ?email=xxx
     email = request.GET.get('email')
     if not email:
-        return JsonResponse({"code": 400, "message": '必须传递邮箱！'})
+        return JsonResponse({"code": 400, "message": 'Email must be provided!'})
     captcha = "".join(random.sample(string.digits, 4))
-    # 存储到数据库中
+    # Store in database
     CaptchaModel.objects.update_or_create(email=email, defaults={'captcha': captcha})
     send_mail("Sofa Bee Registration Verification Code", message=f"your register verification code is：{captcha}",
               recipient_list=[email], from_email=None)
@@ -132,7 +132,7 @@ def compare_code(request):
 def history_order(request, id=None):
     if id is None:
         id = request.user.id
-    orders = Order.objects.filter(user_id=id).order_by('-created_at')  # 按创建时间倒序排列
+    orders = Order.objects.filter(user_id=id).order_by('-created_at')  # Order by creation time descending
 
     order_infos = []
 
@@ -163,19 +163,19 @@ def history_order(request, id=None):
                 details_1 = []
                 for item in order_items:
                     try:
-                        # 尝试获取订单项详情
+                        # Try to get order item details
                         image = None
                         try:
-                            # 通过product_name查找对应的Product对象
+                            # Find corresponding Product object by product_name
                             from products.models import Product
                             product = Product.objects.filter(name=item.product_name).first()
                             if product and product.image:
                                 image = product.image.url
                         except Exception:
-                            # 如果获取图片失败，使用None
+                            # If getting image fails, use None
                             pass
                             
-                        # 获取商品的卖家信息
+                        # Get seller information for the product
                         shop_name = ''
                         try:
                             from products.models import Product
@@ -183,7 +183,7 @@ def history_order(request, id=None):
                             if product and product.seller:
                                 shop_name = product.seller.username
                         except Exception:
-                            # 如果获取卖家信息失败，使用空字符串
+                            # If getting seller information fails, use empty string
                             pass
                             
                         detail = Detail(
@@ -196,10 +196,10 @@ def history_order(request, id=None):
                         )
                         details_1.append(detail)
                     except Exception:
-                        # 如果处理订单项时出错，跳过
+                        # If processing order item fails, skip
                         continue
                         
-                # 只有当有订单项详情时才添加订单信息
+                # Only add order information when there are order item details
                 if details_1:
                     order_info = OrderInfo(
                         order_id=order.id, 
@@ -213,11 +213,11 @@ def history_order(request, id=None):
                     )
                     order_infos.append(order_info)
             except Exception:
-                # 如果处理订单时出错，跳过
+                # If processing order fails, skip
                 continue
     except Exception as e:
-        # 如果处理订单列表时出错，显示错误消息
-        messages.error(request, f"获取订单历史时出错: {str(e)}")
+        # If processing order list fails, show error message
+        messages.error(request, f"Error getting order history: {str(e)}")
         
     order_number = request.GET.get('q')
     filtered_order_infos = []
@@ -233,19 +233,19 @@ def history_order(request, id=None):
 
 
 def delete_order(request, id):
-    """删除订单"""
+    """Delete an order"""
     try:
         order = Order.objects.get(id=id, user=request.user)
         order.delete()
-        messages.success(request, "订单已成功删除")
+        messages.success(request, "Order has been successfully deleted")
     except Order.DoesNotExist:
-        messages.error(request, "订单不存在或您无权删除此订单")
+        messages.error(request, "Order does not exist or you don't have permission to delete it")
     
     return redirect('history_order')
 
 
 def change_avatar(request):
-    """更改用户头像"""
+    """Change user avatar"""
     if request.method == 'POST':
         avatar = request.POST.get('avatar')
         if avatar:
@@ -258,10 +258,10 @@ def change_avatar(request):
                 messages.error(request, "User profile not found.")
         return redirect('profiles', id=request.user.id)
     
-    # 获取可用的头像列表
+    # Get list of available avatars
     avatars = []
-    avatars.append('default.png')  # 默认头像
-    for i in range(1, 13):  # pic1.png 到 pic12.png
+    avatars.append('default.png')  # Default avatar
+    for i in range(1, 13):  # pic1.png to pic12.png
         avatars.append(f'pic{i}.png')
     
     return render(request, 'change_avatar.html', {'avatars': avatars})
@@ -269,11 +269,11 @@ def change_avatar(request):
 
 def order_detail(request, id):
     try:
-        # 尝试获取订单
+        # Try to get the order
         order = Order.objects.get(id=id)
     except Order.DoesNotExist:
-        # 如果订单不存在，重定向到订单历史页面
-        messages.error(request, "订单不存在")
+        # If order doesn't exist, redirect to order history page
+        messages.error(request, "Order does not exist")
         return redirect('history_order')
 
     class OrderInfo:
@@ -287,13 +287,13 @@ def order_detail(request, id):
             self.paid_at = paid_at
             self.address = address
 
-    # 修复地址获取逻辑
+    # Fix address retrieval logic
     try:
-        # 尝试将shipping_address解析为地址ID
+        # Try to parse shipping_address as address ID
         address_id = int(order.shipping_address)
         address_1 = Address.objects.get(id=address_id)
     except (ValueError, Address.DoesNotExist):
-        # 如果无法解析为ID或地址不存在，则使用字符串表示
+        # If can't parse as ID or address doesn't exist, use string representation
         address_1 = order.shipping_address
     
     order_info = OrderInfo(order_id=order.id, order_number=order.order_number, total_price=order.total_price,
@@ -315,9 +315,9 @@ def order_detail(request, id):
             self.merchant = merchant
             self.final_details = final_details
 
-    order_items = OrderItem.objects.filter(order=order)  # 获取所有订单项
+    order_items = OrderItem.objects.filter(order=order)  # Get all order items
     
-    # 通过product_name查找对应的Product对象
+    # Find corresponding Product objects by product_name
     from products.models import Product
     products = []
     for order_item in order_items:
@@ -326,30 +326,30 @@ def order_detail(request, id):
             if product:
                 products.append(product)
         except Exception:
-            # 如果产品不存在或有其他问题，跳过这个订单项
+            # If product doesn't exist or there are other issues, skip this order item
             continue
     
-    # 如果没有有效的产品，显示空结果
+    # If there are no valid products, show empty results
     if not products:
         return render(request, 'order_detail.html', {
             'order_info': order_info, 
             'final_results': [],
-            'error_message': '此订单没有有效的产品信息'
+            'error_message': 'This order has no valid product information'
         })
     
-    # 获得所有店家
+    # Get all sellers
     sellers = []
     for product in products:
         try:
             if product.seller:
                 sellers.append(product.seller)
         except Exception:
-            # 如果卖家不存在，跳过
+            # If seller doesn't exist, skip
             continue
 
     final_results = []
     try:
-        # 尝试获取所有卖家
+        # Try to get all sellers
         sellers = list({product_1.seller.id: product_1.seller for product_1 in products if product_1.seller}.values())
         
         for seller in sellers:
@@ -362,7 +362,7 @@ def order_detail(request, id):
                         description = product.description
                         
                         try:
-                            # 尝试获取订单项
+                            # Try to get order item
                             order_item = OrderItem.objects.filter(order=order, product_name=product.name).first()
                             if order_item:
                                 unit_price = product.price
@@ -372,21 +372,21 @@ def order_detail(request, id):
                                 final_detail = Final_detail(name, picture, unit_price, quantity, description, total_price)
                                 final_details.append(final_detail)
                         except Exception:
-                            # 如果订单项不存在，跳过
+                            # If order item doesn't exist, skip
                             continue
                 except Exception:
-                    # 如果处理产品时出错，跳过
+                    # If processing product fails, skip
                     continue
                     
-            if final_details:  # 只有当有详情时才添加结果
+            if final_details:  # Only add result when there are details
                 final_result = Final_result(seller, final_details)
                 final_results.append(final_result)
     except Exception as e:
-        # 如果处理卖家时出错，显示错误消息
+        # If processing sellers fails, show error message
         return render(request, 'order_detail.html', {
             'order_info': order_info, 
             'final_results': [],
-            'error_message': f'处理订单详情时出错: {str(e)}'
+            'error_message': f'Error processing order details: {str(e)}'
         })
 
     return render(request, 'order_detail.html', {'order_info': order_info, 'final_results': final_results})

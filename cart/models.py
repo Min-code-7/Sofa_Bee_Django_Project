@@ -24,15 +24,15 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    # 恢复product字段，但设置为null=True, blank=True
+    # Restore product field, but set to null=True, blank=True
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    # 恢复variant字段，但设置为null=True, blank=True
+    # Restore variant field, but set to null=True, blank=True
     variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, null=True, blank=True)
-    product_id_test = models.IntegerField(default=0)  # 数据库中的字段
+    product_id_test = models.IntegerField(default=0)  # Field in the database
     quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(auto_now_add=True)
     
-    # 这些字段已经存在于数据库中
+    # These fields already exist in the database
     product_name = models.CharField(max_length=255, null=True, blank=True)
     product_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     product_image = models.CharField(max_length=255, null=True, blank=True)
@@ -53,5 +53,5 @@ class CartItem(models.Model):
         return 0
 
     class Meta:
-        # 暂时移除约束，避免使用product_id字段
+        # Temporarily remove constraints to avoid using product_id field
         pass
