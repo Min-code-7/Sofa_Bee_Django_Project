@@ -1,18 +1,35 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}cart{% endblock %}
+{% block title %}Cart{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/notification.js' %}"></script>
+<script src="{% static 'js/cart.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 <div class="container my-4">
-    <h1 class="mb-4">CART</h1>
+    <!-- CSRF token for AJAX requests -->
+    <form id="csrf-form" style="display: none;">
+        {% csrf_token %}
+    </form>
+    
+    <!-- Notification area for messages -->
+    <div id="notification-area" class="mb-4" style="display: none;">
+        <!-- Messages will be displayed here -->
+    </div>
     
     <!-- Search form -->
     <div class="row mb-4">
         <div class="col-md-6 offset-md-6">
             <div class="input-group">
                 <input type="text" id="cart-search" class="form-control" placeholder="Search in cart..." value="{{ request.GET.q|default:'' }}">
-                <button class="btn btn-primary" type="button" id="search-btn">search</button>
+                <button class="btn btn-primary" type="button" id="search-btn">Search</button>
                 {% if request.GET.q %}
                 <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary ms-2">Clear Search</a>
                 {% endif %}
@@ -90,6 +107,85 @@
                                                         Product
                                                 {% endif %}
                                                 </p>
+                                                
+                                                <!-- Display variant information and selection if available -->
+                                                {% if item.product and item.product.variants.exists %}
+                                                <div class="mt-2 variant-selection" data-item-id="{{ item.id }}" data-product-id="{{ item.product.id }}">
+                                                    {% if item.variant %}
+                                                    <div class="current-variant mb-2">
+                                                        <span class="badge bg-info text-dark">
+                                                            {% for value in item.variant.attribute_values.all %}
+                                                                {{ value.attribute.name }}: {{ value.value }}{% if not forloop.last %}, {% endif %}
+                                                            {% endfor %}
+                                                        </span>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2 change-variant-btn">
+                                                            Change
+                                                        </button>
+                                                    </div>
+                                                    <div class="variant-options" style="display: none;">
+                                                        {% for attribute in item.product.attributes.all %}
+                                                        <div class="mb-2">
+                                                            <label class="form-label"><small>{{ attribute.name }}:</small></label>
+                                                            <div class="btn-group btn-group-sm attribute-options" role="group" data-attribute-id="{{ attribute.id }}">
+                                                                {% for value in attribute.values.all %}
+                                                                <input type="radio" class="btn-check attribute-value" 
+                                                                       name="attr_{{ item.id }}_{{ attribute.id }}" 
+                                                                       id="attr_{{ item.id }}_{{ attribute.id }}_{{ value.id }}" 
+                                                                       value="{{ value.id }}"
+                                                                       {% for current_value in item.variant.attribute_values.all %}
+                                                                           {% if current_value.id == value.id %}checked{% endif %}
+                                                                       {% endfor %}>
+                                                                <label class="btn btn-outline-primary" for="attr_{{ item.id }}_{{ attribute.id }}_{{ value.id }}">
+                                                                    {{ value.value }}
+                                                                </label>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        {% endfor %}
+                                                        <div class="mt-2">
+                                                            <button type="button" class="btn btn-sm btn-primary apply-variant-btn">Apply</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2 cancel-variant-btn">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                    {% else %}
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary select-variant-btn">
+                                                        Select options
+                                                    </button>
+                                                    <div class="variant-options" style="display: none;">
+                                                        {% for attribute in item.product.attributes.all %}
+                                                        <div class="mb-2">
+                                                            <label class="form-label"><small>{{ attribute.name }}:</small></label>
+                                                            <div class="btn-group btn-group-sm attribute-options" role="group" data-attribute-id="{{ attribute.id }}">
+                                                                {% for value in attribute.values.all %}
+                                                                <input type="radio" class="btn-check attribute-value" 
+                                                                       name="attr_{{ item.id }}_{{ attribute.id }}" 
+                                                                       id="attr_{{ item.id }}_{{ attribute.id }}_{{ value.id }}" 
+                                                                       value="{{ value.id }}"
+                                                                       {% if forloop.first %}checked{% endif %}>
+                                                                <label class="btn btn-outline-primary" for="attr_{{ item.id }}_{{ attribute.id }}_{{ value.id }}">
+                                                                    {{ value.value }}
+                                                                </label>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                        {% endfor %}
+                                                        <div class="mt-2">
+                                                            <button type="button" class="btn btn-sm btn-primary apply-variant-btn">Apply</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2 cancel-variant-btn">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% elif item.variant %}
+                                                <!-- For items that have variant but product is not available -->
+                                                <div class="mt-2">
+                                                    <span class="badge bg-info text-dark">
+                                                        {% for value in item.variant.attribute_values.all %}
+                                                            {{ value.attribute.name }}: {{ value.value }}{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </span>
+                                                </div>
+                                                {% endif %}
                                             </td>
                                             <td class="align-middle text-center" style="width: 20%;">
                                                 <div class="input-group input-group-sm">
@@ -114,7 +210,7 @@
                                                 </strong>
                                             </td>
                                             <td class="align-middle text-center" style="width: 15%;">
-                                                <button type="button" class="btn btn-sm btn-danger remove-item" data-item="{{ item.id }}">delete</button>
+                                                <button type="button" class="btn btn-sm btn-danger remove-item" data-item="{{ item.id }}">Delete</button>
                                             </td>
                                         </tr>
                                     {% endfor %}
@@ -146,142 +242,27 @@
     {% endif %}
 </div>
 
+<!-- Set CSRF token for cart.js -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Select all checkbox functionality
-        const selectAllCheckbox = document.getElementById('select-all');
-        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
-        const shopCheckboxes = document.querySelectorAll('.shop-checkbox');
-        
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function() {
-                const isChecked = this.checked;
-                itemCheckboxes.forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                shopCheckboxes.forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                updateTotalPrice();
-            });
-        }
-        
-        // Shop checkboxes
-        shopCheckboxes.forEach(shopCheckbox => {
-            shopCheckbox.addEventListener('change', function() {
-                const shopName = this.value;
-                const isChecked = this.checked;
-                document.querySelectorAll(`.item-checkbox[data-shop="${shopName}"]`).forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                updateTotalPrice();
-            });
-        });
-        
-        // Item checkboxes
-        itemCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                updateTotalPrice();
-            });
-        });
-        
-        // Quantity buttons
-        document.querySelectorAll('.quantity-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const itemId = this.getAttribute('data-item');
-                const input = document.querySelector(`.quantity-input[data-item="${itemId}"]`);
-                let quantity = parseInt(input.value);
-                
-                if (this.getAttribute('data-action') === 'increase') {
-                    quantity += 1;
-                } else {
-                    quantity -= 1;
-                    if (quantity < 1) quantity = 1;
-                }
-                
-                input.value = quantity;
-                
-                // Update on server using AJAX
-                fetch(`/cart/update/${itemId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: `quantity=${quantity}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        document.querySelector(`.item-price[data-item="${itemId}"]`).textContent = 
-                            '$' + data.item_price.toFixed(2);
-                        document.getElementById('total-price').textContent = '£' + data.cart_price.toFixed(2);
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
-                });
-            });
-        });
-        
-        // Remove item buttons
-        document.querySelectorAll('.remove-item').forEach(button => {
-            button.addEventListener('click', function() {
-                const itemId = this.getAttribute('data-item');
-                if (confirm('Are you sure you want to remove this item?')) {
-                    fetch(`/cart/remove/${itemId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            // Remove the item row
-                            this.closest('tr').remove();
-                            document.getElementById('total-price').textContent = '£' + data.cart_price.toFixed(2);
-                            
-                            // If no items left, refresh the page
-                            if (data.cart_total === 0) {
-                                window.location.reload();
-                            }
-                        }
-                    });
                 }
-            });
-        });
-        
-        // Search functionality
-        document.getElementById('search-btn')?.addEventListener('click', function() {
-            const query = document.getElementById('cart-search').value;
-            if (query) {
-                window.location.href = `{% url 'cart:cart_detail' %}?q=${encodeURIComponent(query)}`;
             }
-        });
-        
-        // Checkout button
-        document.getElementById('checkout-btn')?.addEventListener('click', function() {
-            const selectedItems = document.querySelectorAll('.item-checkbox:checked');
-            if (selectedItems.length === 0) {
-                alert('Please select at least one item to checkout.');
-                return;
-            }
-            
-            document.getElementById('cart-form').submit();
-        });
-        
-        // Helper function to update total price based on selected items
-        function updateTotalPrice() {
-            let total = 0;
-            document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
-                const itemId = checkbox.value;
-                const row = checkbox.closest('tr');
-                const quantity = parseInt(row.querySelector('.quantity-input').value);
-                const price = parseFloat(row.querySelector('.item-price').getAttribute('data-price'));
-                total += quantity * price;
-            });
-            document.getElementById('total-price').textContent = '£' + total.toFixed(2);
+            return cookieValue;
         }
+        
+        // Set global CSRF token
+        window.csrfToken = getCookie('csrftoken');
     });
 </script>
 {% endblock %}

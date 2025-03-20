@@ -54,100 +54,7 @@ def cart_detail(request):
 @login_required
 @require_POST
 def cart_add(request, product_id):
-    """ 
-    Add a product to the cart.
-    cart = get_cart(request)
-    if not cart:
-        return redirect('users:login')
-
-    # json request to get variant product id
-    variant_id = None
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body)
-            variant_id = data.get('variant_id')
-        except json.JSONDecodeError:
-            pass
-
-    product = get_object_or_404(Product, id=product_id)
-    variant = None
-
-    if variant_id:
-        variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
-        price = variant.price
-        stock = variant.stock
-    else:
-        price = product.price
-        stock = product.stock
-
-    # check stock
-    if stock <= 0:
-        return JsonResponse({
-            "status": "error",
-            "message": "商品已售罄"
-        })
-
-    try:
-        # compile old version
-        if hasattr(product, 'id') and product.id:
-            if variant:
-                cart_item = CartItem.objects.filter(
-                    cart=cart,
-                    product=product,
-                    variant=variant
-                ).first()
-            else:
-                cart_item = CartItem.objects.filter(
-                    cart=cart,
-                    product=product,
-                    variant__isnull=True
-                ).first()
-        else:
-            cart_item = CartItem.objects.filter(
-                cart=cart,
-                product_id_test=product_id
-            ).first()
-
-        if cart_item:
-            if cart_item.quantity + 1 <= stock:
-                cart_item.quantity += 1
-                cart_item.save()
-            else:
-                return JsonResponse({
-                    "status": "error",
-                    "message": "understock"
-                })
-        else:
-            if hasattr(product, 'id') and product.id:
-                CartItem.objects.create(
-                    cart=cart,
-                    product=product,
-                    variant=variant,
-                    product_name=product.name,
-                    product_price=price,
-                    product_image=product.image.url if product.image else None,
-                    quantity=1
-                )
-            else:
-                CartItem.objects.create(
-                    cart=cart,
-                    product_id_test=product_id,
-                    product_name=product["name"],
-                    product_price=product["price"],
-                    product_image=product["image"],
-                    quantity=1
-                )
-
-    except Exception as e:
-        print(f"Error adding item to cart: {e}")
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
-    return JsonResponse({
-        "status": "success",
-        "message": f"{'变体商品' if variant else '商品'} 已添加到购物车",
-        "cart_total": cart.items.count()
-    }) 
-    """
+    """Add a product to the cart."""
     cart = get_cart(request)
     if not cart:
         return redirect('users:login')
@@ -155,48 +62,82 @@ def cart_add(request, product_id):
     # Get product from database
     product = get_object_or_404(Product, id=product_id)
     
+    # Check for variant_id in JSON request
+    variant_id = None
+    variant = None
+    price = product.price
+    stock = product.stock
+    
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+            variant_id = data.get('variant_id')
+            if variant_id:
+                variant = get_object_or_404(ProductVariant, id=variant_id, product=product)
+                price = variant.price
+                stock = variant.stock
+        except json.JSONDecodeError:
+            pass
+    
     # Check stock
-    if product.stock <= 0:
+    if stock <= 0:
         return JsonResponse({
             "status": "error",
             "message": "Sorry, this product is out of stock."
         })
     
     try:
-        # 不使用get_or_create，而是先查询，如果不存在则创建
-        cart_item = CartItem.objects.filter(cart=cart, product_id_test=product_id).first()
+        # Find existing cart item with the same product and variant
+        if variant:
+            cart_item = CartItem.objects.filter(
+                cart=cart,
+                product=product,
+                variant=variant
+            ).first()
+        else:
+            cart_item = CartItem.objects.filter(
+                cart=cart,
+                product=product,
+                variant__isnull=True
+            ).first()
         
         if cart_item:
-            created = False
-        else:
-            created = True
-            cart_item = CartItem.objects.create(
-                cart=cart,
-                product=product,  # 设置product字段
-                product_id_test=product_id,
-                product_name=product.name,
-                product_price=product.price,
-                product_image=product.image.url if product.image else None,
-                quantity=1
-            )
-        
-        if not created:
             # If exists, increase quantity
-            if cart_item.quantity < product.stock:
+            if cart_item.quantity < stock:
                 cart_item.quantity += 1
                 cart_item.save()
             else:
                 return JsonResponse({
                     "status": "error",
-                    "message": f"Sorry, only {product.stock} items available in stock."
+                    "message": f"Sorry, only {stock} items available in stock."
                 })
+        else:
+            # Create new cart item
+            cart_item = CartItem.objects.create(
+                cart=cart,
+                product=product,
+                variant=variant,
+                product_id_test=product_id,
+                product_name=product.name,
+                product_price=price,
+                product_image=product.image.url if product.image else None,
+                quantity=1
+            )
     
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
     
+    variant_info = ""
+    if variant:
+        variant_attrs = []
+        for value in variant.attribute_values.all():
+            variant_attrs.append(f"{value.attribute.name}: {value.value}")
+        if variant_attrs:
+            variant_info = f" ({', '.join(variant_attrs)})"
+    
     return JsonResponse({
         "status": "success",
-        "message": f"{product.name} has been added to your cart.",
+        "message": f"{product.name}{variant_info} has been added to your cart.",
         "cart_total": cart.items.count()
     })
 
@@ -317,6 +258,97 @@ def cart_update(request, item_id):
     return redirect('cart:cart_detail')
 
 @login_required
+@require_POST
+def update_variant(request, item_id):
+    """Update the variant of a cart item."""
+    cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+    
+    try:
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        attribute_values = data.get('attribute_values', [])
+        
+        if not product_id or not attribute_values:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Missing required parameters'
+            }, status=400)
+        
+        # Get the product
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Find the variant that matches the selected attribute values
+        matching_variant = None
+        for variant in product.variants.all():
+            # Get all attribute value IDs for this variant
+            variant_attr_values = set(value.id for value in variant.attribute_values.all())
+            # Check if the selected attribute values match this variant
+            if set(attribute_values) == variant_attr_values:
+                matching_variant = variant
+                break
+        
+        if not matching_variant:
+            # Try to find a variant with at least some matching attributes
+            best_match = None
+            best_match_count = 0
+            
+            for variant in product.variants.all():
+                variant_attr_values = set(value.id for value in variant.attribute_values.all())
+                match_count = len(set(attribute_values).intersection(variant_attr_values))
+                
+                if match_count > best_match_count:
+                    best_match = variant
+                    best_match_count = match_count
+            
+            if best_match:
+                matching_variant = best_match
+            else:
+                # If no match found, use the first variant
+                matching_variant = product.variants.first()
+        
+        if not matching_variant:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No matching variant found'
+            }, status=404)
+        
+        # Check if the variant is in stock
+        if matching_variant.stock <= 0:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Selected variant is out of stock'
+            }, status=400)
+        
+        # Update the cart item
+        cart_item.variant = matching_variant
+        cart_item.product_price = matching_variant.price
+        cart_item.save()
+        
+        # Get variant info for the response
+        variant_info = []
+        for value in matching_variant.attribute_values.all():
+            variant_info.append(f"{value.attribute.name}: {value.value}")
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Variant updated successfully',
+            'variant_info': ', '.join(variant_info),
+            'price': float(matching_variant.price),
+            'stock': matching_variant.stock
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON data'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+@login_required
 def cart_search(request):
     query = request.GET.get('q', '')
     cart = get_cart(request)
@@ -354,44 +386,36 @@ def cart_search(request):
 
 @login_required
 def checkout(request):
-
-    # Modified
-    # #Display checkout page with cart summary.
-    # cart = get_cart(request)
-    # if not cart or cart.items.count() == 0:
-        # return redirect('products:product_list')
-    
-    # context = {
-        # 'cart': cart,
-        # 'cart_items': cart.items.select_related('product').all(),
-        # 'total_price': cart.get_total_price(),
-    # }
-    # return render(request, 'cart/checkout.html', context)
-
     cart = get_cart(request)
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
     
-    # 获取所有购物车商品
-    cart_items = cart.items.all()
+    # Get selected items from form submission
+    if request.method == 'POST':
+        selected_item_ids = request.POST.getlist('items[]')
+        
+        if not selected_item_ids:
+            messages.error(request, "Please select at least one item to checkout.")
+            return redirect('cart:cart_detail')
+        
+        # Store selected item IDs in session for later use
+        request.session['selected_item_ids'] = selected_item_ids
+        
+        # Get only the selected cart items
+        cart_items = cart.items.filter(id__in=selected_item_ids)
+    else:
+        # If no items were selected (direct access to checkout URL)
+        selected_item_ids = request.session.get('selected_item_ids', [])
+        if not selected_item_ids:
+            messages.error(request, "Please select items from your cart first.")
+            return redirect('cart:cart_detail')
+        
+        cart_items = cart.items.filter(id__in=selected_item_ids)
     
-    # 检查库存 - 简化处理，暂时跳过库存检查
-    # out_of_stock_items = []
-    # for item in cart_items:
-    #     if item.product and item.quantity > item.product.stock:
-    #         out_of_stock_items.append({
-    #             'name': item.product.name,
-    #             'available': item.product.stock,
-    #             'requested': item.quantity
-    #         })
+    # Calculate total price of selected items
+    total_price = sum(item.get_price() for item in cart_items)
     
-    # if out_of_stock_items:
-    #     context = {
-    #         'out_of_stock_items': out_of_stock_items
-    #     }
-    #     return render(request, 'cart/stock_error.html', context)
-    
-    # 调试信息
+    # Debug information
     for item in cart_items:
         product_name = item.product_name if hasattr(item, 'product_name') and item.product_name else "Unknown"
         product_price = item.product_price if hasattr(item, 'product_price') and item.product_price else 0
@@ -400,7 +424,8 @@ def checkout(request):
     context = {
         'cart': cart,
         'cart_items': cart_items,
-        'total_price': cart.get_total_price(),
+        'total_price': total_price,
+        'selected_item_ids': selected_item_ids,
     }
     return render(request, 'cart/checkout.html', context)
 
@@ -410,6 +435,18 @@ def shipping(request):
     cart = get_cart(request)
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
+    
+    # Get selected items from session
+    selected_item_ids = request.session.get('selected_item_ids', [])
+    if not selected_item_ids:
+        messages.error(request, "Please select items from your cart first.")
+        return redirect('cart:cart_detail')
+    
+    # Get only the selected cart items
+    cart_items = cart.items.filter(id__in=selected_item_ids)
+    
+    # Calculate total price of selected items
+    total_price = sum(item.get_price() for item in cart_items)
     
     if request.method == 'POST':
         form = ShippingAddressForm(request.POST, user=request.user)
@@ -457,7 +494,8 @@ def shipping(request):
     context = {
         'form': form,
         'cart': cart,
-        'total_price': cart.get_total_price(),
+        'cart_items': cart_items,
+        'total_price': total_price,
     }
     return render(request, 'cart/shipping.html', context)
 
@@ -468,16 +506,36 @@ def payment(request):
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
     
+    # Get selected items from session
+    selected_item_ids = request.session.get('selected_item_ids', [])
+    if not selected_item_ids:
+        messages.error(request, "Please select items from your cart first.")
+        return redirect('cart:cart_detail')
+    
+    # Get only the selected cart items
+    cart_items = cart.items.filter(id__in=selected_item_ids)
+    
+    # Calculate total price of selected items
+    total_price = sum(item.get_price() for item in cart_items)
+    
     shipping_info = request.session.get('shipping_info', {})
     if not shipping_info:
         return redirect('cart:shipping')
     
-     # Check stock again - 简化处理，暂时跳过库存检查
-    # for item in cart.items.all():
-    #     if item.product and item.quantity > item.product.stock:
-    #         product_name = item.product_name if hasattr(item, 'product_name') and item.product_name else item.product.name
-    #         messages.error(request, f"Sorry, '{product_name}' now only has {item.product.stock} items in stock.")
-    #         return redirect('cart:cart_detail')
+    # Check stock for selected items
+    for item in cart_items:
+        stock = 0
+        if item.variant:
+            stock = item.variant.stock
+        elif item.product:
+            stock = item.product.stock
+        else:
+            stock = 999
+            
+        if item.quantity > stock:
+            product_name = item.product_name if item.product_name else "Product"
+            messages.error(request, f"Sorry, '{product_name}' now only has {stock} items in stock.")
+            return redirect('cart:cart_detail')
         
     # Generate order number for QR code
     order_number = str(uuid.uuid4()).replace("-", "")[:12]
@@ -485,7 +543,8 @@ def payment(request):
     
     context = {
         'cart': cart,
-        'total_price': cart.get_total_price(),
+        'cart_items': cart_items,
+        'total_price': total_price,
         'shipping_info': shipping_info,
         'order_number': order_number,
     }
@@ -493,11 +552,22 @@ def payment(request):
 
 @login_required
 def payment_success(request):
-
-    #Process successful payment and create order.
+    """Process successful payment and create order."""
     cart = get_cart(request)
     if not cart or cart.items.count() == 0:
         return redirect('products:product_list')
+
+    # Get selected items from session
+    selected_item_ids = request.session.get('selected_item_ids', [])
+    if not selected_item_ids:
+        messages.error(request, "Please select items from your cart first.")
+        return redirect('cart:cart_detail')
+    
+    # Get only the selected cart items
+    cart_items = cart.items.filter(id__in=selected_item_ids)
+    
+    # Calculate total price of selected items
+    total_price = sum(item.get_price() for item in cart_items)
 
     shipping_info = request.session.get('shipping_info', {})
     order_number = request.session.get('pending_order_number')
@@ -505,16 +575,20 @@ def payment_success(request):
     if not shipping_info or not order_number:
         return redirect('cart:checkout')
     
-    # Final stock check and reduce inventory - 简化处理，暂时跳过库存检查
-    # for item in cart.items.all():
-    #     if item.product and item.quantity > item.product.stock:
-    #         product_name = item.product_name if hasattr(item, 'product_name') and item.product_name else item.product.name
-    #         messages.error(request, f"Sorry, '{product_name}' is now out of stock.")
-    #         return redirect('cart:cart_detail')
-    #     
-    #     # Reduce stock
-    #     if item.product:
-    #         item.product.reduce_stock(item.quantity)
+    # Final stock check for selected items
+    for item in cart_items:
+        stock = 0
+        if item.variant:
+            stock = item.variant.stock
+        elif item.product:
+            stock = item.product.stock
+        else:
+            stock = 999
+            
+        if item.quantity > stock:
+            product_name = item.product_name if item.product_name else "Product"
+            messages.error(request, f"Sorry, '{product_name}' now only has {stock} items in stock.")
+            return redirect('cart:cart_detail')
 
     # Create the order with properly formatted address
     name = shipping_info.get('name', '')
@@ -533,13 +607,13 @@ def payment_success(request):
     order = Order.objects.create(
         user=request.user,
         order_number=order_number,
-        total_price=cart.get_total_price(),
+        total_price=total_price,  # Use the total price of selected items
         status='paid',
         shipping_address=formatted_address,
     )
     
-    # Create order items
-    for cart_item in cart.items.all():
+    # Create order items only for selected items
+    for cart_item in cart_items:
         product_name = cart_item.product_name if cart_item.product_name else "Product"
         price = cart_item.product_price if cart_item.product_price else 0
 
@@ -550,19 +624,21 @@ def payment_success(request):
             price=price,
         )
 
-        # 减少库存
+        # Reduce stock
         if cart_item.variant:
             cart_item.variant.reduce_stock(cart_item.quantity)
         elif cart_item.product:
             cart_item.product.reduce_stock(cart_item.quantity)
     
-    # Clear the cart
-    cart.items.all().delete()
+    # Remove only the selected items from cart
+    cart_items.delete()
     
     # Clear session data
     if 'shipping_info' in request.session:
         del request.session['shipping_info']
     if 'pending_order_number' in request.session:
         del request.session['pending_order_number']
+    if 'selected_item_ids' in request.session:
+        del request.session['selected_item_ids']
     
     return render(request, 'cart/payment_success.html', {'order': order})

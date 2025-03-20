@@ -3,12 +3,20 @@
 
 {% block title %}Register - Sofa Bee{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/user-forms.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/register.js' %}"></script>
+{% endblock %}
+
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card shadow-sm" style="width: 400px;">
+<div class="container d-flex justify-content-center align-items-center auth-container">
+    <div class="card auth-card">
         <div class="card-body p-4">
             <div class="text-center mb-4">
-                <img src="{% static 'images/logo.png' %}" alt="Sofa Bee Logo" height="60">
+                <img src="{% static 'images/logo.png' %}" alt="Sofa Bee Logo" class="auth-logo">
                 <h4 class="mt-3 mb-4">Register into Sofa Bee</h4>
             </div>
 
@@ -19,18 +27,18 @@
                     <label for="id_username" class="form-label">Username</label>
                     {{ form.username.errors }}
                     <input type="text" name="username" id="id_username" class="form-control" required>
-                    <small id="username-feedback" class="text-danger" style="display: none;"></small>
+                    <small id="username-feedback" class="username-feedback" style="display: none;"></small>
                 </div>
                 
                 <div class="mb-3">
                     <label for="id_email" class="form-label">Email</label>
                     {{ form.email.errors }}
                     <input type="email" name="email" id="id_email" class="form-control" required>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <span id="countdown-timer" class="text-danger" style="display: none;"></span>
+                    <div class="verification-code-container">
+                        <span id="countdown-timer" class="countdown-timer" style="display: none;"></span>
                         <button type="button" id="send-code" class="btn btn-sm btn-outline-secondary">Send verification code</button>
                     </div>
-                    <small id="code-expiry" class="text-muted" style="display: none;">Verification code will expire in <span id="expiry-timer">5:00</span></small>
+                    <small id="code-expiry" class="code-expiry" style="display: none;">Verification code will expire in <span id="expiry-timer">5:00</span></small>
                 </div>
                 
 				<div class="mb-3">
@@ -77,153 +85,12 @@
     </div>
 </div>
 
+<!-- Pass CSRF token to register.js -->
 <script>
-// Variables to track timers
-let cooldownTimer = null;
-let expiryTimer = null;
-let cooldownSeconds = 0;
-let expirySeconds = 0;
-
-// Format seconds to MM:SS
-function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-}
-
-// Start cooldown timer
-function startCooldownTimer(seconds) {
-    const sendCodeBtn = document.getElementById("send-code");
-    const countdownTimer = document.getElementById("countdown-timer");
-    
-    // Disable button and show countdown
-    sendCodeBtn.disabled = true;
-    countdownTimer.style.display = "block";
-    cooldownSeconds = seconds;
-    
-    // Update countdown every second
-    cooldownTimer = setInterval(function() {
-        cooldownSeconds--;
-        countdownTimer.textContent = `Resend in ${cooldownSeconds}s`;
-        
-        if (cooldownSeconds <= 0) {
-            // Enable button and hide countdown when timer ends
-            clearInterval(cooldownTimer);
-            sendCodeBtn.disabled = false;
-            countdownTimer.style.display = "none";
-        }
-    }, 1000);
-}
-
-// Start expiry timer
-function startExpiryTimer() {
-    const codeExpiry = document.getElementById("code-expiry");
-    const expiryTimerElement = document.getElementById("expiry-timer");
-    
-    // Show expiry message
-    codeExpiry.style.display = "block";
-    expirySeconds = 5 * 60; // 5 minutes in seconds
-    
-    // Update expiry timer every second
-    expiryTimer = setInterval(function() {
-        expirySeconds--;
-        expiryTimerElement.textContent = formatTime(expirySeconds);
-        
-        if (expirySeconds <= 0) {
-            // Hide expiry message when timer ends
-            clearInterval(expiryTimer);
-            codeExpiry.style.display = "none";
-        }
-    }, 1000);
-}
-
-// Send verification code
-document.getElementById("send-code").addEventListener("click", function() {
-    var email = document.querySelector("input[name='email']").value;
-    if (!email) {
-        alert("Please input email first!");
-        return;
-    }
-
-    fetch("{% url 'users:send_verification_code' %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": "{{ csrf_token }}",
-        },
-        body: "email=" + encodeURIComponent(email),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-            if (data.seconds_left) {
-                startCooldownTimer(data.seconds_left);
-            }
-        } else {
-            alert(data.message);
-            
-            // Clear any existing timers
-            if (cooldownTimer) clearInterval(cooldownTimer);
-            if (expiryTimer) clearInterval(expiryTimer);
-            
-            // Start new timers
-            startCooldownTimer(60); // 1 minute cooldown
-            startExpiryTimer(); // 5 minutes expiry
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert("An error occurred while sending the verification code. Please try again.");
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set verification code URL for register.js
+        window.verificationCodeUrl = "{% url 'users:send_verification_code' %}";
+        window.checkUsernameUrl = "{% url 'users:check_username' %}";
     });
-});
-
-// Check username availability
-let usernameCheckTimeout = null;
-document.getElementById("id_username").addEventListener("input", function() {
-    const username = this.value.trim();
-    const usernameFeedback = document.getElementById("username-feedback");
-    
-    // Clear previous timeout
-    if (usernameCheckTimeout) {
-        clearTimeout(usernameCheckTimeout);
-    }
-    
-    // Hide feedback if username is empty
-    if (!username) {
-        usernameFeedback.style.display = "none";
-        return;
-    }
-    
-    // Set a timeout to avoid too many requests while typing
-    usernameCheckTimeout = setTimeout(function() {
-        fetch(`{% url 'users:check_username' %}?username=${encodeURIComponent(username)}`)
-            .then(response => response.json())
-            .then(data => {
-                usernameFeedback.style.display = "block";
-                
-                if (data.exists) {
-                    usernameFeedback.textContent = "Username already exists";
-                    usernameFeedback.className = "text-danger";
-                } else {
-                    usernameFeedback.textContent = "Username is available";
-                    usernameFeedback.className = "text-success";
-                }
-            })
-            .catch(error => {
-                console.error("Error checking username:", error);
-                usernameFeedback.style.display = "none";
-            });
-    }, 500); // Wait 500ms after user stops typing
-});
-
-// When the user clicks "Register as merchant", the merchant type is automatically selected
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('user_type') === 'merchant') {
-    var userTypeField = document.querySelector("input[name='user_type']");
-    if (userTypeField) {
-        userTypeField.value = 'merchant';
-    }
-}
 </script>
 {% endblock %}

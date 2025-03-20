@@ -28,6 +28,10 @@ from django.utils import timezone
 from .forms import UserRegisterForm
 from .models import UserProfile
 
+import socket
+import smtplib
+from django.conf import settings
+
 def send_verification_code(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -55,19 +59,68 @@ def send_verification_code(request):
         request.session["verification_code_sent_time"] = datetime.now().timestamp()
         request.session["verification_code_expiry_time"] = (datetime.now() + timedelta(minutes=5)).timestamp()
 
-        # send email
-        send_mail(
-            subject="Register verification code",
-            message=f"Your verification code is: {code}. Please complete the registration within 5 minutes.",
-            from_email="itforpurchasing@163.com",  
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
-        return JsonResponse({
-            "message": "The verification code has been sent, please check your email!",
-            "sent_time": request.session["verification_code_sent_time"]
-        })
+        # Debug information
+        print(f"Sending verification code {code} to {email}")
+        print(f"Email settings: HOST={settings.EMAIL_HOST}, PORT={settings.EMAIL_PORT}, USER={settings.EMAIL_HOST_USER}")
+        print(f"SSL={settings.EMAIL_USE_SSL}, TLS={settings.EMAIL_USE_TLS}")
+        
+        try:
+            # Test SMTP connection first
+            try:
+                if settings.EMAIL_USE_SSL:
+                    smtp = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=10)
+                else:
+                    smtp = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=10)
+                
+                if settings.EMAIL_USE_TLS:
+                    smtp.starttls()
+                
+                # Try to login
+                smtp.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                print("SMTP connection and login successful")
+                smtp.quit()
+            except (socket.error, smtplib.SMTPException) as e:
+                print(f"SMTP connection test failed: {str(e)}")
+                # Continue anyway to see the actual Django error
+            
+            # Send email using Django's send_mail
+            send_mail(
+                subject="Register verification code",
+                message=f"Your verification code is: {code}. Please complete the registration within 5 minutes.",
+                from_email=settings.EMAIL_HOST_USER,  
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            print(f"Email sent successfully to {email}")
+            
+            return JsonResponse({
+                "message": "The verification code has been sent, please check your email!",
+                "sent_time": request.session["verification_code_sent_time"]
+            })
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send email: {error_msg}")
+            
+            # Provide more specific error messages based on common SMTP issues
+            if "Authentication" in error_msg:
+                error_details = "Email authentication failed. The password or authorization code may be incorrect."
+            elif "timed out" in error_msg:
+                error_details = "Connection to email server timed out. Check network settings or firewall."
+            elif "Unknown SMTP host" in error_msg:
+                error_details = "Could not connect to email server. Check the host name."
+            elif "Connection refused" in error_msg:
+                error_details = "Email server refused connection. Check port settings and server availability."
+            else:
+                error_details = error_msg
+            
+            # For debugging purposes, still save the code in session and return it
+            # In production, you would want to return a generic error instead
+            return JsonResponse({
+                "message": f"Verification code is {code} (displayed for debugging). In production, this would be sent via email.",
+                "debug_code": code,  # Only for debugging
+                "error_details": error_details,
+                "sent_time": request.session["verification_code_sent_time"]
+            })
 
 def register(request):
     user_type = request.GET.get("user_type", "regular")

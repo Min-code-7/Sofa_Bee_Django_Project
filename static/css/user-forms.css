@@ -1,0 +1,36 @@
+/* User forms styles (login, register, etc.) */
+.auth-container {
+    min-height: 80vh;
+}
+
+.auth-card {
+    width: 400px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.auth-logo {
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+.verification-code-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.countdown-timer {
+    color: #dc3545;
+    font-size: 0.875rem;
+}
+
+.code-expiry {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.username-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

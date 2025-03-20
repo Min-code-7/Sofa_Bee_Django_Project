@@ -1,7 +1,24 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Product Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product-detail.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/notification.js' %}"></script>
+<script src="{% static 'js/product-detail.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
+    <!-- Notification area for messages -->
+    <div id="notification-area" class="mb-4" style="display: none;">
+        <!-- Messages will be displayed here -->
+    </div>
+    
     <!-- Product details -->
     <div class="row">
         <div class="col-md-5">
@@ -77,7 +94,7 @@
                     <label for="filter-images" class="form-check-label">Only with Images</label>
                 </div>
 
-                <button class="btn btn-primary" onclick="filterReviews()">Apply Filters</button>
+                <button class="btn btn-primary" id="apply-filters-btn">Apply Filters</button>
             </div>
         </div>
     </div>
@@ -154,225 +171,21 @@
     </div>
 </div>
 
-<!-- AJAX implement filter -->
+<!-- CSRF token for AJAX requests -->
+<form id="csrf-form" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<!-- jQuery for AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-{% if has_variants %}
-// Variant selection and cart functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Get variant data from server
-    const variantData = {{ variants_json|safe }};
-    const attributeGroups = document.querySelectorAll('.attribute-options');
-    const addToCartBtn = document.getElementById('add-to-cart-btn');
-    const variantPriceEl = document.getElementById('variant-price');
-    const variantStockEl = document.getElementById('variant-stock');
-
-    // Store the selected variant ID
-    let selectedVariantId = null;
-
-    // Initialize with default variant
-    updateSelectedVariant();
-
-    // Add event listeners to all attribute options
-    attributeGroups.forEach(group => {
-        const radioButtons = group.querySelectorAll('.attribute-value');
-        radioButtons.forEach(radio => {
-            radio.addEventListener('change', updateSelectedVariant);
-        });
-    });
-
-    // Handle the Add to Cart button click
-    if (addToCartBtn) {
-        addToCartBtn.addEventListener('click', function() {
-            if (selectedVariantId) {
-                addToCartWithVariant({{ product.id }}, selectedVariantId);
-            } else {
-                addToCart({{ product.id }});
-            }
-        });
-    }
-
-    // Function to update the selected variant based on selected options
-    function updateSelectedVariant() {
-        if (!variantData || variantData.length === 0) return;
-
-        // Get all selected attribute values
-        const selectedAttributeValues = [];
-        attributeGroups.forEach(group => {
-            const selectedRadio = group.querySelector('input[type="radio"]:checked');
-            if (selectedRadio) {
-                selectedAttributeValues.push(parseInt(selectedRadio.value));
-            }
-        });
-
-        // Find the matching variant
-        for (const variant of variantData) {
-            // Check if all selected attributes match this variant
-            // This approach assumes that each variant has exactly the same number of attribute values
-            // as the selected ones (each attribute has exactly one value selected)
-            if (selectedAttributeValues.length === variant.attribute_values.length) {
-                let allMatch = true;
-                for (const valueId of selectedAttributeValues) {
-                    if (!variant.attribute_values.includes(valueId)) {
-                        allMatch = false;
-                        break;
-                    }
-                }
-
-                if (allMatch) {
-                    // Update the variant ID, price, and stock
-                    selectedVariantId = variant.id;
-                    if (variantPriceEl) variantPriceEl.textContent = variant.price;
-                    if (variantStockEl) variantStockEl.textContent = variant.stock;
-                    return;
-                }
-            }
-        }
-
-        // If no match found, use the default variant
-        const defaultVariant = variantData.find(v => v.is_default) || variantData[0];
-        if (defaultVariant) {
-            selectedVariantId = defaultVariant.id;
-            if (variantPriceEl) variantPriceEl.textContent = defaultVariant.price;
-            if (variantStockEl) variantStockEl.textContent = defaultVariant.stock;
-        }
-    }
-
-    // Function to add a product variant to cart
-    function addToCartWithVariant(productId, variantId) {
-        console.log("Adding product variant to cart:", productId, variantId);
-
-        const csrftoken = getCookie('csrftoken');
-
-        fetch(`/cart/add/${productId}/`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                variant_id: variantId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert(data.message || 'Error adding to cart');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while adding to cart');
-        });
-    }
-});
-{% endif %}
-
-function filterReviews() {
-    let rating = $("#filter-rating").val();
-    let keyword = $("#filter-keyword").val();
-    let onlyImages = $("#filter-images").prop("checked");
-
-    console.log("Sending rating:", rating, "Type", typeof rating);
-
-    $.ajax({
-        url: "/products/reviews/filter/{{ product.id }}/",
-        data: {
-            rating: rating ? parseInt(rating, 10) : null,
-            keyword: keyword,
-            images: onlyImages
-        },
-        dataType: "json",
-        success: function(response) {
-            console.log("Filtered Reviews:", response.reviews);
-
-            $("#reviews-list").html("");
-            if (response.reviews.length === 0) {
-                $("#reviews-list").html("<p>No matching reviews.</p>");
-            } else {
-                $.each(response.reviews, function(index, review) {
-                    let stars = "⭐".repeat(parseInt(review.rating));
-                    let reviewHtml = `
-                        <div class="review-card p-3 border rounded mb-3">
-                            <strong>${review.user}</strong> rated: ${stars}
-                            <p>${review.comment}</p>
-                            <small>${review.created_at}</small>
-                    `;
-                    if (review.image) {
-                        reviewHtml += `<div class="mt-2"><img src="${review.image}" class="img-thumbnail" width="100"></div>`;
-                    }
-                    reviewHtml += `</div>`;
-                    $("#reviews-list").append(reviewHtml);
-                });
-            }
-        }
-    });
-}
-
-function addToCart(productId) {
-    console.log("Adding product to cart:", productId);
-
-    // Get CSRF token from cookie
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    const csrftoken = getCookie('csrftoken');
-
-    fetch(`/cart/add/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken
-        }
-    })
-    .then(response => {
-        console.log("Response status:", response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log("Response data:", data);
-        if (data.status === 'success') {
-            alert(data.message);
-        } else {
-            alert(data.message || 'Error adding to cart');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while adding to cart');
-    });
-}
-
-// Function to get CSRF token (for variant selection)
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+    // Set global variables for product-detail.js
+    window.productId = {{ product.id }};
+    {% if has_variants %}
+    window.variantData = {{ variants_json|safe }};
+    {% endif %}
+    
+    // Get CSRF token for AJAX requests
+    window.csrfToken = "{{ csrf_token }}";
 </script>
 {% endblock %}

@@ -3,6 +3,12 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'products/css/product_styles.css' %}">
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/notification.js' %}"></script>
+<script src="{% static 'js/product-list.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -94,9 +100,8 @@
                     <p class="card-text text-muted small">{{ product.category.name }}</p>
                     <p class="card-text flex-grow-1">{{ product.description|truncatewords:15 }}</p>
                     <p><strong>Price: <span class="text-primary">£{{ product.price }}</span></strong></p>
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-center">
                         <a href="{% url 'products:product_detail' product.id %}" class="btn btn-primary">View Details</a>
-                        <button class="btn btn-success add-to-cart" data-id="{{ product.id }}">Add to Cart</button>
                     </div>
                 </div>
             </div>
@@ -159,114 +164,6 @@
     {% endif %}
 </div>
 
-<!-- jQuery + AJAX-->
+<!-- jQuery for AJAX -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    // Add click event handler for all "Add to Cart" buttons
-    $(document).ready(function() {
-        console.log("Document ready, binding click events");
-        
-        // Only use one event binding method
-        $('.add-to-cart').on('click', function() {
-            const productId = $(this).data('id');
-            console.log(`Button clicked for product ${productId}`);
-            addToCart(productId);
-        });
-    });
-
-    function filterByCategory(category) {
-        if (category) {
-            window.location.href = "{% url 'products:product_list' %}?category=" + encodeURIComponent(category);
-        } else {
-            window.location.href = "{% url 'products:product_list' %}";
-        }
-    }
-
-    function searchProducts() {
-        var query = $("#search-input").val();
-        $.ajax({
-            url: "{% url 'products:product_search' %}",
-            data: { q: query },
-            dataType: "json",
-            success: function(data) {
-                $("#product-list").html("");
-
-                if (data.products.length === 0) {
-                    $("#product-list").html(`
-                        <div class="col-12 text-center py-5">
-                            <div class="card shadow-sm">
-                                <div class="card-body">
-                                    <h5 class="card-title text-muted">No matching products found</h5>
-                                    <p class="card-text">Try different search terms or browse categories.</p>
-                                    <button class="btn btn-outline-secondary mt-3" onclick="window.location.reload()">
-                                        Reset Search
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                } else {
-                    $.each(data.products, function(index, product) {
-                        var imageHtml = product.image ? 
-                            `<div class="product-image-container" style="height: 200px; overflow: hidden;">
-                                <img src="${product.image}" class="card-img-top img-fluid w-100" alt="${product.name}" style="object-fit: cover; height: 100%;">
-                             </div>` : 
-                            '<div class="text-center py-5 bg-light">No Image</div>';
-                            
-                        $("#product-list").append(`
-                            <div class="col-md-4 mb-4">
-                                <div class="card shadow-sm h-100">
-                                    ${imageHtml}
-                                    <div class="card-body d-flex flex-column">
-                                        <h5 class="card-title">${product.name}</h5>
-                                        <p class="card-text text-muted small">${product.category || ''}</p>
-                                        <p class="card-text flex-grow-1">${product.description}</p>
-                                        <p><strong>Price: <span class="text-primary">£${product.price.toFixed(2)}</span></strong></p>
-                                        <div class="d-flex justify-content-between">
-                                            <a href="/products/${product.id}/" class="btn btn-primary">View Details</a>
-                                            <button class="btn btn-success" onclick="addToCart(${product.id})">Add to Cart</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `);
-                    });
-                }
-            }
-        });
-    }
-    
-    function addToCart(productId) {
-        console.log("Adding product to cart:", productId);
-    
-        // Get CSRF token from hidden form
-        const csrftoken = document.querySelector('#csrf-form [name=csrfmiddlewaretoken]').value;
-        console.log("CSRF Token:", csrftoken);
-    
-        fetch(`/cart/add/${productId}/`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrftoken
-            }
-        })
-        .then(response => {
-            console.log("Response status:", response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log("Response data:", data);
-            if (data.status === 'success') {
-                alert(data.message);
-                location.reload(); 
-            } else {
-                alert(data.message || 'Error adding to cart');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while adding to cart');
-        });
-    }
-</script>
 {% endblock %}
