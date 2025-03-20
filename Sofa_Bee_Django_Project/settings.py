@@ -20,12 +20,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^kk5h-o(yv=(q@)nc^#8+_at@+ref6h51j_7wa!#hms!yppc_@'
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-^kk5h-o(yv=(q@)nc^#8+_at@+ref6h51j_7wa!#hms!yppc_@')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+
+ALLOWED_HOSTS = ['SofaBee.pythonanywhere.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -83,12 +85,28 @@ WSGI_APPLICATION = 'Sofa_Bee_Django_Project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# PythonAnywhere MySQL 
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'SofaBee$default',
+        'USER': 'SofaBee',
+        'PASSWORD': 'ShujukuDjango37039',
+        'HOST': 'SofaBee.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
     }
 }
+
+
+# our own
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
+#     }
+# }
 
 
 # Password validation
@@ -150,8 +168,16 @@ EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'itforpurchasing@163.com'
-EMAIL_HOST_PASSWORD = 'JUGh78SjzvQXKwr4'  # This should be an app password/authorization code, not the actual email password
+
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'JUGh78SjzvQXKwr4')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Uncomment the line below to use console backend for debugging
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SECURE = True  
+CSRF_COOKIE_SECURE = True  
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  
+
+
