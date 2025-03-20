@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-^kk5h-o(yv=(q@)nc^#8+_at@+ref6h51j_7wa!#hms!yppc_@')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 ALLOWED_HOSTS = ['SofaBee.pythonanywhere.com', 'localhost', '127.0.0.1']
@@ -88,25 +88,25 @@ WSGI_APPLICATION = 'Sofa_Bee_Django_Project.wsgi.application'
 # PythonAnywhere MySQL 
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'SofaBee$default',
-        'USER': 'SofaBee',
-        'PASSWORD': 'ShujukuDjango37039',
-        'HOST': 'SofaBee.mysql.pythonanywhere-services.com',
-        'PORT': '3306',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'SofaBee$default',
+#         'USER': 'SofaBee',
+#         'PASSWORD': 'ShujukuDjango37039',
+#         'HOST': 'SofaBee.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#     }
+# }
 
 
 # our own
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
+    }
+}
 
 
 # Password validation
@@ -149,7 +149,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'profiles' / 'static',
     BASE_DIR / 'static',
 ]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Comment out for development environment
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files (User uploaded files)
 MEDIA_URL = '/media/'
@@ -178,6 +179,4 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SECURE = True  
 CSRF_COOKIE_SECURE = True  
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  
-
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
