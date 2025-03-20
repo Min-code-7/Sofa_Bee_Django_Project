@@ -182,7 +182,7 @@ def cart_add(request, product_id):
 
     return JsonResponse({
         "status": "success",
-        "message": f"{'变体商品' if variant else '商品'} 已添加到购物车",
+        "message": f"{'variant' if variant else 'product'} has been added to your cart successfully.",
         "cart_total": cart.items.count()
     })
 
