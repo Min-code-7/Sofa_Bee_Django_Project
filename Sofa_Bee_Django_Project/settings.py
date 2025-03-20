@@ -88,25 +88,25 @@ WSGI_APPLICATION = 'Sofa_Bee_Django_Project.wsgi.application'
 # PythonAnywhere MySQL 
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'SofaBee$default',
-#         'USER': 'SofaBee',
-#         'PASSWORD': 'ShujukuDjango37039',
-#         'HOST': 'SofaBee.mysql.pythonanywhere-services.com',
-#         'PORT': '3306',
-#     }
-# }
-
-
-# our own
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'SofaBee$default',
+        'USER': 'SofaBee',
+        'PASSWORD': 'ShujukuDjango37039',
+        'HOST': 'SofaBee.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
     }
 }
+
+
+# # our own
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': str(BASE_DIR / 'db.sqlite3'),  # Convert to string to resolve Path object issues
+#     }
+# }
 
 
 # Password validation
